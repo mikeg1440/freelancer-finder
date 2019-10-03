@@ -1,6 +1,14 @@
-require "job_finder/version"
+require 'bundler'
+require 'open-uri'
+require 'etc'
+
+Bundler.require(:default, :developement)
 
 module JobFinder
-  class Error < StandardError; end
-  # Your code goes here...
+
+  require_relative "job_finder/cli.rb"
+  require_relative "job_finder/job.rb"
+  require_relative "job_finder/scraper.rb"
+
+
 end
