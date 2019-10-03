@@ -2,7 +2,7 @@
 
 class JobFinder::Job
 
-  attr_accessor :title, :time_left, :short_description, :tags, :price, :url
+  attr_accessor :title, :time_left, :short_description, :description, :tags, :price, :url, :bids
 
   @@all = []
 
@@ -22,8 +22,13 @@ class JobFinder::Job
     print "#{self.time_left}\n".green
     print "\tTags: "
     print "#{self.tags.join(',')}\n".green
+    if self.bids
+      print "\n\tBids: "
+      print "#{self.bids}\n".green
+    end
     print "Description: \n"
-    print "#{self.short_description}\n\n".green
+    # print "#{self.short_description}\n\n".green
+    print "#{self.description}\n\n".green
 
   end
 

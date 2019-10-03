@@ -23,6 +23,10 @@ class JobFinder::CLI
 
   end
 
+  def run
+
+  end 
+
   def greet_user(username)
     banner_1 = '''
     /$$$$$$$$                            /$$
@@ -71,10 +75,9 @@ class JobFinder::CLI
   end
 
   def show_menu
-    clear_screen
 
     puts "1. Show most recent job listings".green
-    puts "2. Show all listings on page".green
+    puts "2. Show listings from multiple pages".green
     puts "3. Find listing by search term".green
     puts "4. Find listing by pay".green
     puts "0. Exit or type 'exit'".red
@@ -123,8 +126,6 @@ class JobFinder::CLI
 
     puts "00. Exit"
 
-    clear_screen
-
     get_user_selection(listings)
   end
 
@@ -137,11 +138,14 @@ class JobFinder::CLI
       selected_listing = gets.chomp.downcase
     end
 
+    clear_screen
+
     listings[selected_listing.to_i - 1]
   end
 
   def show_job_details(job_listing)
 
+    @scraper.scrape_details(job_listing)
     job_listing.print_info
 
   end
@@ -151,8 +155,8 @@ class JobFinder::CLI
     max_listings = ""
 
     until max_listings.to_i.between?(1, JobFinder::Job.all.count)
-      puts "#{JobFinder::Job.all.count} Total Listings to Choose From!".blue
-      puts "How many listings would you like to see?: ".blue
+      puts "#{JobFinder::Job.all.count} Total Listings to Choose From!".magenta
+      print "How many listings would you like to see?: ".blue
       max_listings = gets.chomp.downcase
     end
 
