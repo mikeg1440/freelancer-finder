@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require_relative "../lib/job_finder"
+
+JobFinder::CLI.new.call
