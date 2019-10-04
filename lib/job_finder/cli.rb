@@ -7,16 +7,15 @@ class JobFinder::CLI
   def call
 
     username = Etc.getlogin
+    ret_value = ""
 
     greet_user(username)
     scrape_jobs
-    show_menu
-    listings = handle_input(prompt_user)
-    if listings
-      selected_job = select_listing(listings)
-      show_job_details(selected_job)
-    else
-      puts "No Listings Found!"
+
+    # loop program until return value is falsey
+    until !ret_value
+      ret_value = run         # store run methods return value in ret_value so we can check it for the loop
+      # clear_screen
     end
 
     farewell_message(username)
@@ -103,9 +102,10 @@ class JobFinder::CLI
   end
 
   def handle_input(choice)
+    # binding.pry
 
     case choice
-    when "0", "exit"
+    when "0", "exit", nil
       return nil
     when "1", "show recent"
       listings = show_recent_listings
@@ -120,9 +120,10 @@ class JobFinder::CLI
       puts "Please Enter a Valid Menu Choice!"
     end
 
-    listings
+    select_listing(listings)
   end
 
+  # prompts user for a job listing entry choice from the index numbers listed
   def prompt_user
     response = ""
     until response == "exit" || response == "0" || response.to_i.between?(1,4)
@@ -158,14 +159,14 @@ class JobFinder::CLI
 
     clear_screen
 
-    listings[selected_listing.to_i - 1]
+    selected_listing != "00" ? listings[selected_listing.to_i - 1] : nil
   end
 
   def show_job_details(job_listing)
 
     @scraper.scrape_details(job_listing)
     job_listing.print_info
-
+    job_listing
   end
 
   def show_recent_listings
@@ -200,9 +201,47 @@ class JobFinder::CLI
   end
 
   def find_listings_by_term
+
+    print "Enter a search term to filter jobs by: ".blue
+    response = gets.strip
+
+    # listings = JobFinder::Job.all.find_all {|job| job.title.match(/"#{response}"/) || job.short_description.match(/"#{response}"/)}
+    listings = JobFinder::Job.all.find_all {|job| job.title.include?("#{response}") || job.short_description.include?("#{response}")}
+
+    binding.pry
+    listings
   end
 
   def find_listings_by_pay
+
+    pay = 0
+    until pay > 0
+      print "Show all listings with a pay of: "
+      pay = gets.strip.to_i
+    end
+
+    listings = JobFinder::Job.all.find_all do |job|
+      binding.pry
+      if job.budget_range.count > 1
+        pay.between?(job.budget_range[0], job.budget_range[1])
+      else
+        job.budget_range[0] == pay
+      end
+    end
+
+    binding.pry
+    listings
+  end
+
+  def open_in_browser?(listing)
+    puts "URL: #{listing.full_url}"
+    print "Open listing page in browser?(yes/no): "
+    response = gets.chomp.downcase
+
+    if response == "y" || response == "yes"
+      system("xdg-open #{listing.full_url}")
+    end
+
   end
 
   def farewell_message(username)
