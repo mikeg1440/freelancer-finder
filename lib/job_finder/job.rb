@@ -18,8 +18,11 @@ class JobFinder::Job
 
     print "Job Title: "
     print "#{self.title}\n".green
-    print "\tBudget: "
-    print "#{self.budget}\n".green
+
+    if self.budget
+      print "\tBudget: "
+      print "#{self.budget}\n".green
+    end
 
     if self.avg_bid
       print "\tAverage Bid: "
