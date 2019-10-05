@@ -212,18 +212,18 @@ class JobFinder::CLI
     pages_to_scrape = 0
 
     until pages_to_scrape != 0
-      print "How many pages would you like to scrape?:".blue
+      print "How many pages would you like to scrape?: ".blue
       pages_to_scrape = gets.chomp.to_i
     end
 
     base_url = "https://www.freelancer.com/jobs/"
 
     (1..pages_to_scrape).each do |page|
-      binding.pry
+      progress_bar(1.0 / pages_to_scrape)
       JobFinder::Scraper.new("#{base_url}#{page}")
     end
 
-    puts "Succesfully Scraped #{pages_to_scrape} Pages!".magenta
+    puts "\nSuccesfully Scraped #{pages_to_scrape} Pages!".magenta
 
     JobFinder::Job.all
   end
@@ -278,8 +278,17 @@ class JobFinder::CLI
 
     end
 
-    # binding.pry
+
     listings
+  end
+
+  def progress_bar(progress_ratio)
+
+    max = ENV['COLUMNS'].to_f
+    binding.pry
+    print "#".magenta * (progress_ratio * max)
+
+
   end
 
   def open_in_browser?(listing)
