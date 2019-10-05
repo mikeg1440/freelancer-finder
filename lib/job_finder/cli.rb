@@ -2,14 +2,24 @@
 
 class JobFinder::CLI
 
-  attr_accessor :scraper, :last_listings
+  attr_accessor :scraper, :last_listings, :username
 
+  # hex color codes for change text color
+  @@red = "\u001b[31m"
+  @@green = "\u001b[32m"
+  @@blue = "\u001b[34m"
+  @@magenta = "\u001b[35m"
+  @@cyan = "\u001b[36m"
+  @@white = "\u001b[37m"
+  @@reset = "\u001b[0m"
+
+  # this method starts the program by gretting the user by current username then scraping the first page and showing the menu
   def call
 
-    username = Etc.getlogin
+    @username = Etc.getlogin
     ret_value = ""
 
-    greet_user(username)
+    greet_user
     scrape_jobs
 
     # loop program until return value is falsey
@@ -18,14 +28,14 @@ class JobFinder::CLI
       # clear_screen
     end
 
-    farewell_message(username)
+    farewell_message
 
   end
 
   def run
     show_menu
     listing = handle_input(prompt_user)
-    # binding.pry
+
     if listing && listing != "0"
       # selected_job = select_listing(listing)
       show_job_details(listing)
@@ -39,7 +49,7 @@ class JobFinder::CLI
     listing
   end
 
-  def greet_user(username)
+  def greet_user
     banner_1 = '''
     /$$$$$$$$                            /$$                                                  /$$$$$           /$$
    | $$_____/                           | $$                                                 |__  $$          | $$
@@ -84,7 +94,7 @@ class JobFinder::CLI
     else
       puts banner_2.blue
     end
-    print "\n\t[*] Hello #{username}! [*]\t\n".blue
+    print "\n\t[*] Hello #{@username}! [*]\t\n".blue
   end
 
   def scrape_jobs
@@ -102,7 +112,7 @@ class JobFinder::CLI
   end
 
   def handle_input(choice)
-    # binding.pry
+
 
     case choice
     when "0", "exit", nil
@@ -143,7 +153,7 @@ class JobFinder::CLI
       if job.avg_bid
         print "#{job.avg_bid}\n".green
       elsif job.budget
-        print "#{job.budget}\n"
+        print "#{job.budget}\n".green
       else
         print "\n"
       end
@@ -236,7 +246,7 @@ class JobFinder::CLI
     # listings = JobFinder::Job.all.find_all {|job| job.title.match(/"#{response}"/) || job.short_description.match(/"#{response}"/)}
     listings = JobFinder::Job.all.find_all {|job| job.title.include?("#{response}") || job.short_description.include?("#{response}")}
 
-    # binding.pry
+
     listings
   end
 
@@ -257,7 +267,7 @@ class JobFinder::CLI
       if job.budget_range
 
         if job.budget_range.count > 1
-          binding.pry
+
           max_pay.between?(job.budget_range[0].gsub("$","").to_i, job.budget_range[1].gsub("$","").to_i)
           min_pay.between?(job.budget_range[0].gsub("$","").to_i, job.budget_range[1].gsub("$","").to_i)
         else
@@ -302,9 +312,9 @@ class JobFinder::CLI
 
   end
 
-  def farewell_message(username)
+  def farewell_message
     puts "Program Exiting...".red
-    puts "Goodbye #{username}!".blue
+    puts "Goodbye #{@username}!".blue
   end
 
   def clear_screen
