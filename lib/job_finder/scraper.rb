@@ -35,8 +35,10 @@ class JobFinder::Scraper
       if price_string.include?("Avg") && price_match.count > 1
         # price_match = price_string.gsub("\n","").scan(/(\$\d+).+(Avg Bid)/)
         info[:avg_bid] = price_match.join(" - ")
+        binding.pry if info[:avg_bid].scan(/\d+/).count > 1
       elsif price_string.include?("-") && price_string.include?("hr")
         info[:budget] = "#{price_match.join(' - ')} / hr"
+        info[:budget_range] = info[:budget].scan(/\d+/)
       elsif price_string.include?("hr") && price_match.count == 1
         info[:avg_bid] = "#{price_match[0]} / hr"
       elsif price_string.include?("-")
@@ -47,7 +49,7 @@ class JobFinder::Scraper
       # info[:price] = price_string.match(/\$\d+/)
       info[:url] = listing.css(".JobSearchCard-primary-heading-link")[0]['href']
 
-      # binding.pry
+      # binding.pry if !info[:budget]
 
       # next create the job instances from the data we just scraped
 
@@ -63,9 +65,10 @@ class JobFinder::Scraper
 
     binding.pry
 
-    job_listing.budget = doc.css(".PageProjectViewLogout-header-byLine").text.match(/\$[\d]+ ?- ?\$?\d+.*/)[0]
-
-    job_listing.budget_range = job_listing.budget.scan(/(\d+)/)
+    if doc.css(".PageProjectViewLogout-header-byLine").text.match(/\$[\d]+ ?- ?\$?\d+.*/)
+      job_listing.budget = doc.css(".PageProjectViewLogout-header-byLine").text.match(/\$[\d]+ ?- ?\$?\d+.*/)[0]
+      job_listing.budget_range = job_listing.budget.scan(/(\d+)/)
+    end
 
     if doc.css(".Card-body").class == nil
       job_listing.description = doc.css(".Card-body")[0].text.split.join(" ")
