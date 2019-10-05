@@ -2,7 +2,7 @@
 
 class JobFinder::CLI
 
-  attr_accessor :scraper
+  attr_accessor :scraper, :last_listings
 
   def call
 
@@ -26,7 +26,7 @@ class JobFinder::CLI
     show_menu
     listing = handle_input(prompt_user)
     # binding.pry
-    if listing
+    if listing && listing != "0"
       # selected_job = select_listing(listing)
       show_job_details(listing)
       open_in_browser?(listing)
@@ -94,7 +94,7 @@ class JobFinder::CLI
   def show_menu
 
     puts "1. Show most recent job listings".green
-    puts "2. Show listings from multiple pages".green
+    puts "2. Set Number of Pages to Scrape(Default: 1)".green
     puts "3. Find listing by search term".green
     puts "4. Find listing by pay".green
     puts "0. Exit or type 'exit'".red
@@ -139,11 +139,19 @@ class JobFinder::CLI
   def select_listing(listings)
 
     listings.each.with_index(1) do |job, index|
-      puts "#{index}. #{job.title} - #{job.price}".green
-      puts ""
+      print "#{index}. #{job.title} - ".green
+      if job.avg_bid
+        print "#{job.avg_bid}\n".green
+      elsif job.budget
+        print "#{job.budget}\n"
+      else
+        print "\n"
+      end
+      print "\n"
     end
 
-    puts "00. Exit"
+    puts "00. Exit".red
+    puts "0. Return to menu".magenta
 
     get_user_selection(listings)
   end
@@ -152,12 +160,14 @@ class JobFinder::CLI
 
     selected_listing = ""
 
-    until selected_listing.to_i.between?(1, listings.count) || selected_listing == "00"
+    until selected_listing.to_i.between?(1, listings.count) || selected_listing == "00" || selected_listing == "0"
       print "Please select a job listings by number: ".blue
       selected_listing = gets.chomp.downcase
     end
 
     clear_screen
+
+    return selected_listing if selected_listing == "0"
 
     selected_listing != "00" ? listings[selected_listing.to_i - 1] : nil
   end
@@ -198,6 +208,24 @@ class JobFinder::CLI
   end
 
   def show_all_listings
+
+    pages_to_scrape = 0
+
+    until pages_to_scrape != 0
+      print "How many pages would you like to scrape?:".blue
+      pages_to_scrape = gets.chomp.to_i
+    end
+
+    base_url = "https://www.freelancer.com/jobs/"
+
+    (1..pages_to_scrape).each do |page|
+      binding.pry
+      JobFinder::Scraper.new("#{base_url}#{page}")
+    end
+
+    puts "Succesfully Scraped #{pages_to_scrape} Pages!".magenta
+
+    JobFinder::Job.all
   end
 
   def find_listings_by_term
@@ -208,28 +236,49 @@ class JobFinder::CLI
     # listings = JobFinder::Job.all.find_all {|job| job.title.match(/"#{response}"/) || job.short_description.match(/"#{response}"/)}
     listings = JobFinder::Job.all.find_all {|job| job.title.include?("#{response}") || job.short_description.include?("#{response}")}
 
-    binding.pry
+    # binding.pry
     listings
   end
 
   def find_listings_by_pay
 
-    pay = 0
-    until pay > 0
-      print "Show all listings with a pay of: "
-      pay = gets.strip.to_i
+    min_pay = 0
+    max_pay = 0
+    puts "View all job listings in a certain pay range"
+    until min_pay > 0 && max_pay > 0
+      print "Enter the low end of pay range: ".blue
+      min_pay = gets.chomp.to_i
+      print "Enter the high end of the pay range: ".blue
+      max_pay  = gets.chomp.to_i
     end
 
     listings = JobFinder::Job.all.find_all do |job|
-      binding.pry
-      if job.budget_range.count > 1
-        pay.between?(job.budget_range[0], job.budget_range[1])
-      else
-        job.budget_range[0] == pay
+
+      if job.budget_range
+
+        if job.budget_range.count > 1
+          binding.pry
+          max_pay.between?(job.budget_range[0].gsub("$","").to_i, job.budget_range[1].gsub("$","").to_i)
+          min_pay.between?(job.budget_range[0].gsub("$","").to_i, job.budget_range[1].gsub("$","").to_i)
+        else
+          job.budget_range.between?(min_pay, max_pay)
+        end
+
+      elsif job.avg_bid
+
+        job.avg_bid.match(/\d+/)[0].to_i.between?(min_pay, max_pay)
+
       end
+
+      # if job.budget_range && job.budget_range.count > 1
+      #   pay.between?(job.budget_range[0].to_i, job.budget_range[1].to_i)
+      # elsif job.budget_range
+      #   job.budget_range[0] == pay
+      # end
+
     end
 
-    binding.pry
+    # binding.pry
     listings
   end
 
