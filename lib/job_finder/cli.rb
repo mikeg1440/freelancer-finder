@@ -23,9 +23,8 @@ class JobFinder::CLI
     scrape_jobs
 
     # loop program until return value is falsey
-    until !ret_value
+    until ret_value == "0" || ret_value == "exit"
       ret_value = run         # store run methods return value in ret_value so we can check it for the loop
-      # clear_screen
     end
 
     farewell_message
@@ -36,14 +35,14 @@ class JobFinder::CLI
     show_menu
     listing = handle_input(prompt_user)
 
-    if listing && listing != "0"
-      # selected_job = select_listing(listing)
+    if listing.class == JobFinder::Job
       show_job_details(listing)
       open_in_browser?(listing)
-    elsif listing != nil
-      puts "No Listings Found!"
     end
 
+    if !listing
+      return true
+    end
 
     # selected_job
     listing
@@ -103,8 +102,9 @@ class JobFinder::CLI
 
   def show_menu
 
-    puts "1. Show most recent job listings".green
-    puts "2. Set Number of Pages to Scrape(Default: 1)".green
+    puts "[+] #{JobFinder::Job.all.count} Listings Scraped [+]".magenta
+    puts "1. Show most recent job listings(Page One)".green
+    puts "2. Scrape Additional Pages".green
     puts "3. Find listing by search term".green
     puts "4. Find listing by pay".green
     puts "0. Exit or type 'exit'".red
@@ -116,11 +116,13 @@ class JobFinder::CLI
 
     case choice
     when "0", "exit", nil
-      return nil
+      return choice
     when "1", "show recent"
       listings = show_recent_listings
-    when "2", "show all"
-      listings = show_all_listings
+    when "2", "scrape more"
+      # listings = scrape_more_pages
+      scrape_more_pages
+      listings = ""
     when "3", "find by term"
       listings = find_listings_by_term
     when "4", "find by pay"
@@ -130,7 +132,8 @@ class JobFinder::CLI
       puts "Please Enter a Valid Menu Choice!"
     end
 
-    select_listing(listings)
+
+    select_listing(listings) if listings.class == Array
   end
 
   # prompts user for a job listing entry choice from the index numbers listed
@@ -143,13 +146,17 @@ class JobFinder::CLI
 
     clear_screen
 
-    response == "0" ? nil : response
+    response
   end
 
+
+  # takes a array of job listing objects as a argument and displays each title and averge bid or budget range along with a number so the user can choose it
   def select_listing(listings)
 
     listings.each.with_index(1) do |job, index|
       print "#{index}. #{job.title} - ".green
+
+      # this if statement prevents from displaying any blank values (some listings have one or the other value)
       if job.avg_bid
         print "#{job.avg_bid}\n".green
       elsif job.budget
@@ -166,20 +173,22 @@ class JobFinder::CLI
     get_user_selection(listings)
   end
 
+  # takes in the listing objects array as a argument then prompts user for a valid listing choice between 1 and listings array size then returns the selected listing object
   def get_user_selection(listings)
 
     selected_listing = ""
 
-    until selected_listing.to_i.between?(1, listings.count) || selected_listing == "00" || selected_listing == "0"
+    # prompt user until a valid command is recieved
+    until selected_listing.to_i.between?(1, listings.count) || selected_listing == "exit" || selected_listing == "0"
       print "Please select a job listings by number: ".blue
       selected_listing = gets.chomp.downcase
     end
 
     clear_screen
 
-    return selected_listing if selected_listing == "0"
+    return selected_listing if selected_listing == "0" || selected_listing == "exit" # return to main menu
 
-    selected_listing != "00" ? listings[selected_listing.to_i - 1] : nil
+    listings[selected_listing.to_i - 1]  # if user selected the exit command return nil otherwise return the selected listing
   end
 
   def show_job_details(job_listing)
@@ -201,12 +210,6 @@ class JobFinder::CLI
 
     max_listings = max_listings.to_i - 1
 
-    # JobFinder::Job.all.each.with_index(1) do |job, index|
-    #   puts "#{index}. #{job.title}".green
-    #   puts "----------------------------------------------------------".magenta
-    #   break if index >= num_listings
-    # end
-
     listings = []
 
     JobFinder::Job.all.each.with_index do |job, index|
@@ -217,7 +220,8 @@ class JobFinder::CLI
     listings
   end
 
-  def show_all_listings
+
+  def scrape_more_pages
 
     pages_to_scrape = 0
 
@@ -227,7 +231,7 @@ class JobFinder::CLI
     end
 
     base_url = "https://www.freelancer.com/jobs/"
-
+    puts
     (1..pages_to_scrape).each do |page|
       progress_bar(1.0 / pages_to_scrape)
       JobFinder::Scraper.new("#{base_url}#{page}")
@@ -260,6 +264,7 @@ class JobFinder::CLI
       min_pay = gets.chomp.to_i
       print "Enter the high end of the pay range: ".blue
       max_pay  = gets.chomp.to_i
+      
     end
 
     listings = JobFinder::Job.all.find_all do |job|
@@ -294,7 +299,7 @@ class JobFinder::CLI
 
   def progress_bar(progress_ratio)
 
-    max = ENV['COLUMNS'].to_f
+    max = ENV['COLUMNS'].to_i
     binding.pry
     print "#".magenta * (progress_ratio * max)
 
@@ -302,8 +307,8 @@ class JobFinder::CLI
   end
 
   def open_in_browser?(listing)
-    puts "URL: #{listing.full_url}"
-    print "Open listing page in browser?(yes/no): "
+    puts "\nURL: #{listing.full_url}"
+    print "Open listing page in browser?(yes/no): ".blue
     response = gets.chomp.downcase
 
     if response == "y" || response == "yes"
