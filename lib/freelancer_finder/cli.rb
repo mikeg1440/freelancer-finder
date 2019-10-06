@@ -1,29 +1,21 @@
 
 
-class JobFinder::CLI
+class FreelancerFinder::CLI
 
   attr_accessor :scraper, :last_listings, :username
 
-  # hex color codes for change text color
-  @@red = "\u001b[31m"
-  @@green = "\u001b[32m"
-  @@blue = "\u001b[34m"
-  @@magenta = "\u001b[35m"
-  @@cyan = "\u001b[36m"
-  @@white = "\u001b[37m"
-  @@reset = "\u001b[0m"
 
   # this method starts the program by gretting the user by current username then scraping the first page and showing the menu
   def call
 
-    @username = Etc.getlogin
+    @username = ENV['USER']
     ret_value = ""
 
     greet_user
     scrape_jobs
 
     # loop program until return value is falsey
-    until ret_value == "0" || ret_value == "exit"
+    until ret_value == "exit" || ret_value == "00"
       ret_value = run         # store run methods return value in ret_value so we can check it for the loop
     end
 
@@ -35,7 +27,7 @@ class JobFinder::CLI
     show_menu
     listing = handle_input(prompt_user)
 
-    if listing.class == JobFinder::Job
+    if listing.class == FreelancerFinder::Job
       show_job_details(listing)
       open_in_browser?(listing)
     end
@@ -97,17 +89,20 @@ class JobFinder::CLI
   end
 
   def scrape_jobs
-    @scraper = JobFinder::Scraper.new
+    @scraper = FreelancerFinder::Scraper.new
   end
 
   def show_menu
 
-    puts "[+] #{JobFinder::Job.all.count} Listings Scraped [+]".magenta
-    puts "1. Show most recent job listings(Page One)".green
-    puts "2. Scrape Additional Pages".green
-    puts "3. Find listing by search term".green
-    puts "4. Find listing by pay".green
-    puts "0. Exit or type 'exit'".red
+    puts "[+] #{FreelancerFinder::Job.all.count} Listings Scraped [+]".magenta
+    puts "_____________________________________________________________"
+    puts " # |  COMMANDS    |           DESCRIPTION                   |"
+    puts " 1 | show recent  |  Show most recent job listings(1st Page)|".green
+    puts " 2 | scrape more  |  Scrape Additional Pages                |".green
+    puts " 3 | find by term |  Find listing by search term            |".green
+    puts " 4 | find by pay  |  Find listing by pay                    |".green
+    puts "00 |     exit     |  Exit Program                           |".red
+    puts "___|______________|_________________________________________|"
 
   end
 
@@ -115,12 +110,11 @@ class JobFinder::CLI
 
 
     case choice
-    when "0", "exit", nil
+    when "0", "00", "exit"
       return choice
     when "1", "show recent"
       listings = show_recent_listings
     when "2", "scrape more"
-      # listings = scrape_more_pages
       scrape_more_pages
       listings = ""
     when "3", "find by term"
@@ -138,9 +132,21 @@ class JobFinder::CLI
 
   # prompts user for a job listing entry choice from the index numbers listed
   def prompt_user
+
+    valid_opts = [
+      "exit",
+      "0", "00",
+      "1","2","3","4",
+      "show recent",
+      "scrape more",
+      "find by term",
+      "find by pay"
+    ]
+
     response = ""
-    until response == "exit" || response == "0" || response.to_i.between?(1,4)
-      print "Please Choose a Menu Option[0-4]: ".blue
+    # until response == "exit" || response == "00" || response.to_i.between?(1,4)
+    until valid_opts.include?(response)
+      print "Please Enter a Command or Number: ".blue
       response = gets.chomp.downcase
     end
 
@@ -161,14 +167,16 @@ class JobFinder::CLI
         print "#{job.avg_bid}\n".green
       elsif job.budget
         print "#{job.budget}\n".green
+      elsif job.budget_range
+        print "#{job.budget_range.join(" - ")}".green
       else
         print "\n"
       end
       print "\n"
     end
 
-    puts "00. Exit".red
-    puts "0. Return to menu".magenta
+    puts "exit -> Exit Program".red
+    puts "0 -> Return to menu".magenta
 
     get_user_selection(listings)
   end
@@ -177,6 +185,8 @@ class JobFinder::CLI
   def get_user_selection(listings)
 
     selected_listing = ""
+
+    puts "[+] Displaying #{listings.count} Listings [+]".magenta
 
     # prompt user until a valid command is recieved
     until selected_listing.to_i.between?(1, listings.count) || selected_listing == "exit" || selected_listing == "0"
@@ -202,8 +212,8 @@ class JobFinder::CLI
 
     max_listings = ""
 
-    until max_listings.to_i.between?(1, JobFinder::Job.all.count)
-      puts "#{JobFinder::Job.all.count} Total Listings to Choose From!".magenta
+    until max_listings.to_i.between?(1, FreelancerFinder::Job.all.count)
+      puts "#{FreelancerFinder::Job.all.count} Total Listings to Choose From!".magenta
       print "How many listings would you like to see?: ".blue
       max_listings = gets.chomp.downcase
     end
@@ -212,7 +222,7 @@ class JobFinder::CLI
 
     listings = []
 
-    JobFinder::Job.all.each.with_index do |job, index|
+    FreelancerFinder::Job.all.each.with_index do |job, index|
       listings << job
       break if index >= max_listings
     end
@@ -231,15 +241,15 @@ class JobFinder::CLI
     end
 
     base_url = "https://www.freelancer.com/jobs/"
-    puts
+    puts "\n"
     (1..pages_to_scrape).each do |page|
       progress_bar(1.0 / pages_to_scrape)
-      JobFinder::Scraper.new("#{base_url}#{page}")
+      FreelancerFinder::Scraper.new("#{base_url}#{page}")
     end
 
     puts "\nSuccesfully Scraped #{pages_to_scrape} Pages!".magenta
 
-    JobFinder::Job.all
+    FreelancerFinder::Job.all
   end
 
   def find_listings_by_term
@@ -247,9 +257,8 @@ class JobFinder::CLI
     print "Enter a search term to filter jobs by: ".blue
     response = gets.strip
 
-    # listings = JobFinder::Job.all.find_all {|job| job.title.match(/"#{response}"/) || job.short_description.match(/"#{response}"/)}
-    listings = JobFinder::Job.all.find_all {|job| job.title.include?("#{response}") || job.short_description.include?("#{response}")}
-
+    # listings = FreelancerFinder::Job.all.find_all {|job| job.title.match(/"#{response}"/) || job.short_description.match(/"#{response}"/)}
+    listings = FreelancerFinder::Job.all.find_all {|job| job.title.include?("#{response}") || job.short_description.include?("#{response}")}
 
     listings
   end
@@ -259,15 +268,16 @@ class JobFinder::CLI
     min_pay = 0
     max_pay = 0
     puts "View all job listings in a certain pay range"
+
     until min_pay > 0 && max_pay > 0
       print "Enter the low end of pay range: ".blue
       min_pay = gets.chomp.to_i
       print "Enter the high end of the pay range: ".blue
       max_pay  = gets.chomp.to_i
-      
+
     end
 
-    listings = JobFinder::Job.all.find_all do |job|
+    listings = FreelancerFinder::Job.all.find_all do |job|
 
       if job.budget_range
 
@@ -284,26 +294,17 @@ class JobFinder::CLI
         job.avg_bid.match(/\d+/)[0].to_i.between?(min_pay, max_pay)
 
       end
-
-      # if job.budget_range && job.budget_range.count > 1
-      #   pay.between?(job.budget_range[0].to_i, job.budget_range[1].to_i)
-      # elsif job.budget_range
-      #   job.budget_range[0] == pay
-      # end
-
     end
 
+    puts "[*] Found #{listings.count} with pay between #{min_pay} and #{max_pay} [*]".magenta
 
     listings
   end
 
   def progress_bar(progress_ratio)
-
     max = ENV['COLUMNS'].to_i
     binding.pry
     print "#".magenta * (progress_ratio * max)
-
-
   end
 
   def open_in_browser?(listing)
@@ -314,7 +315,6 @@ class JobFinder::CLI
     if response == "y" || response == "yes"
       system("xdg-open #{listing.full_url}")
     end
-
   end
 
   def farewell_message

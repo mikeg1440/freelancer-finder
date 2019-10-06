@@ -1,8 +1,8 @@
 
 
-class JobFinder::Job
+class FreelancerFinder::Job
 
-  attr_accessor :title, :time_left, :short_description, :description, :tags, :price, :budget, :budget_range, :base_url, :url, :bids, :avg_bid
+  attr_accessor :title, :time_left, :short_description, :description, :tags, :budget, :budget_range, :base_url, :url, :bids, :avg_bid, :bid_summary
 
   @@green = "\u001b[32m"
   @@white = "\u001b[37m"
@@ -26,15 +26,20 @@ class JobFinder::Job
       print "\t#{@@white}Budget: #{@@green}#{self.budget}\n"
     end
 
+
+    print "\t#{@@white}Time Left: #{@@green}#{self.time_left}\n"
+    print "\t#{@@white}Tags: #{@@green}#{self.tags.join(',')}\n"
+
+    if self.bids
+      print "\n\t#{@@white}Bids: #{@@green}#{self.bids}\n"
+    end
+
     if self.avg_bid
       print "\t#{@@white}Average Bid: #{@@green}#{self.avg_bid}\n"
     end
 
-    print "\t#{@@white}Time Left: #{@@green}#{self.time_left}\n"
-    print "\t#{@@white}Tags: #{@@green}#{self.tags.join(',')}\n"
-    if self.bids
-      print "\n\t#{@@white}Bids: #{@@green}#{self.bids}\n"
-    end
+    print "\t#{@@white}Bid Summary: #{@@green}#{self.bid_summary}\n" if self.bid_summary
+
     print "\t#{@@white}Description: \n#{@@green}"
     if self.description == nil
       # print "#{self.short_description}\n\n".green     # put a .each_line block here and add \t\t to space it out properly

@@ -1,14 +1,13 @@
 require 'bundler'
 require 'open-uri'
-require 'etc'
 
 Bundler.require(:default, :developement)
 
-module JobFinder
+module FreelancerFinder
 
-  require_relative "job_finder/cli.rb"
-  require_relative "job_finder/job.rb"
-  require_relative "job_finder/scraper.rb"
+  require_relative "freelancer_finder/cli.rb"
+  require_relative "freelancer_finder/job.rb"
+  require_relative "freelancer_finder/scraper.rb"
 
 
 end

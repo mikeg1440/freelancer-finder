@@ -1,15 +1,13 @@
-# JobFinder
+# FreelancerFinder
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/job_finder`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Freelancer-Finder is a CLI application written in ruby that scrapes the website Freelancer.com for job listings and displays the jobs information to the user.  By default it automatically scrapes the first 50 listings and gives the user the option of viewing the most recent listings, scraping more listings, search listings for a specific word or phrase and filter by pay range.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'job_finder'
+gem 'freelancer_finder'
 ```
 
 And then execute:
@@ -18,11 +16,11 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install job_finder
+    $ gem install freelancer_finder
 
 ## Usage
 
-TODO: Write usage instructions here
+  You can run the executable file found in the `bin` directly or add the `bin/freelancer_finder` file to your PATH.
 
 ## Development
 
@@ -32,7 +30,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/job_finder.
+Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/freelancer_finder.
 
 ## License
 

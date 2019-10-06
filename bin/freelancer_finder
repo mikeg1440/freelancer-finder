@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
 
-require_relative "../lib/job_finder"
+require_relative "../lib/freelancer_finder"
 
-JobFinder::CLI.new.call
+FreelancerFinder::CLI.new.call
