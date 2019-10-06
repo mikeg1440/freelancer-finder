@@ -6,9 +6,13 @@ class FreelancerFinder::Scraper
 
   def initialize(url = "https://www.freelancer.com/jobs/")
     @base_url = url
-    @doc = open_from_url(@base_url)
-    scrape_data(@doc)
+    scrape_data_from_url(url)
     self
+  end
+
+  def scrape_data_from_url(url)
+    doc = open_from_url(url)
+    scrape_data(doc)
   end
 
   def open_from_url(url)
@@ -24,13 +28,6 @@ class FreelancerFinder::Scraper
 
       info = {}
 
-      # info[:title] = listing.css(".JobSearchCard-primary-heading a").text.strip
-      # info[:time_left] = listing.css(".JobSearchCard-primary-heading-days").text
-      # info[:short_description] = listing.css(".JobSearchCard-primary-description").text.strip
-      # info[:base_url] = @base_url.match(/http(s)*:\/\/(www\.)*([a-zA-Z0-9\-])+(\.\w+){1,2}/)[0]
-      # info[:tags] = listing.css(".JobSearchCard-primary-tags").text.split("\n").map {|tag| tag.strip unless tag.strip.empty? }
-      # info[:tags] = info[:tags].compact
-
       info[:title] = scrape_title(listing)
       info[:time_left] = scrape_time_left(listing)
       info[:short_description] = scrape_short_description(listing)
@@ -42,32 +39,9 @@ class FreelancerFinder::Scraper
       bid_info = scrape_bid_info(listing)
 
       info.merge!(bid_info)
-      # listing_info = [*info, *tags].to_h
-
-      # this element changes depending on what kind of listing it is and weather or not it has been bid on yet
-      # price_string = listing.css(".JobSearchCard-primary-price").text.strip
-      # price_match = price_string.scan(/\$\d+/)
-
-      # this if then else statement filters the text depending on the type of data
-      # if price_string.include?("Avg") && price_match.count > 1        # if the string contains Avg and has more than 1 number group then we have a Ave Bid range
-      #   # price_match = price_string.gsub("\n","").scan(/(\$\d+).+(Avg Bid)/)
-      #   info[:avg_bid] = price_match.join(" - ")
-      # elsif price_string.include?("-") && price_string.include?("hr")   # if the string includes a dash("-") and also includes the chars "hr" then we have a range for hourly rate
-      #   info[:budget] = "#{price_match.join(' - ')} / hr"
-      #   info[:budget_range] = info[:budget].scan(/\d+/)
-      # elsif price_string.include?("hr") && price_match.count == 1       # if string includes chars "hr" and only one number then its a single hourly rate
-      #   info[:avg_bid] = "#{price_match[0]} / hr"
-      # elsif price_string.include?("-")                                  # if the string only includes a dash and no "Avg" then it is a budget range
-      #   info[:budget_range] = price_string.split(" - ")
-      # else
-      #   info[:avg_bid] = price_string.match(/\$\d+/)[0] if price_string.match(/\$\d+/)      # if also else are false then it should just be a single Avg bid number to store
-      # end
-      # info[:price] = price_string.match(/\$\d+/)
-      # info[:url] = listing.css(".JobSearchCard-primary-heading-link")[0]['href']
 
 
-      FreelancerFinder::Job.new(info)                # next create a job instance from the data we just scraped
-      # FreelancerFinder::Job.new(listing_info)                # next create a job instance from the data we just scraped
+      FreelancerFinder::Job.new(info) unless FreelancerFinder::Job.all.detect {|job| job.url == info[:url]}      # next create a job instance from the data we just scraped unless it exists already
 
 
     end
@@ -127,22 +101,9 @@ class FreelancerFinder::Scraper
 
     listing_doc = open_from_url(job_listing.full_url)
 
-    # if listing_doc.css(".PageProjectViewLogout-header-byLine").text.match(/\$[\d]+ ?- ?\$?\d+.*/)
-    #   job_listing.budget = listing_doc.css(".PageProjectViewLogout-header-byLine").text.match(/\$[\d]+ ?- ?\$?\d+.*/)[0]
-    #   job_listing.budget_range = job_listing.budget.scan(/(\d+)/)
-    # end
-
     scrape_budget(listing_doc, job_listing)
 
-    # if listing_doc.css(".Card-body").class == nil
-    #   job_listing.description = listing_doc.css(".Card-body")[0].text.split.join(" ")
-    # end
-
     scrape_description(listing_doc, job_listing)
-
-    # if listing_doc.css(".Card-header").class == nil
-    #   job_listing.bids = listing_doc.css(".Card-header").text.split("\n")[3].strip
-    # end
 
     scrape_bids(listing_doc, job_listing)
 
@@ -153,7 +114,7 @@ class FreelancerFinder::Scraper
   def scrape_budget(listing_doc, job_listing)
     if listing_doc.css(".PageProjectViewLogout-header-byLine").text.match(/[\$€₹][\d]+ ?- ?[\$€₹]?\d+.*/)
       job_listing.budget = listing_doc.css(".PageProjectViewLogout-header-byLine").text.match(/[\$€₹][\d]+ ?- ?[\$€₹]?\d+.*/)[0]
-      job_listing.budget_range = job_listing.budget.scan(/(\d+)/)
+      job_listing.budget_range = job_listing.budget.scan(/\d+/)
     end
 
   end
@@ -174,11 +135,9 @@ class FreelancerFinder::Scraper
       job_listing.bids = listing_doc.css(".Card-header").text.split("\n")[3].strip
     end
 
-    # if listing_doc.css(".Card-heading").count == 2
     job_listing.bids = job_listing.bid_summary.match(/^\d+/)
     job_listing.avg_bid = job_listing.bid_summary.match(/[\$€₹]\d+/)
-    # end
-    binding.pry
+
   end
 
 end
