@@ -2,7 +2,7 @@
 
 class FreelancerFinder::CLI
 
-  attr_accessor :scraper, :last_listings, :username, :screen_size, :last_scraped_page
+  attr_accessor :scraper, :last_jobs, :username, :screen_size, :last_scraped_page
 
 
   # this method starts the program by gretting the user by current username then scraping the first page and showing the menu
@@ -24,19 +24,17 @@ class FreelancerFinder::CLI
 
   def run
     show_menu
-    listing = handle_input(get_menu_choice)
 
-    if listing.class == FreelancerFinder::Job
-      show_job_details(listing)
-      open_in_browser?(listing)
-    end
+    job = handle_input(get_menu_choice)     # here we the menu choice and handle the choice together and return value will be the selected job or exit command
 
-    if !listing
-      return true
+    # if job is a valid job instance then show details and offer to open in browser
+    if job.class == FreelancerFinder::Job
+      show_job_details(job)
+      open_in_browser?(job)
     end
 
     # selected_job
-    listing
+    job
   end
 
   # gets and sets some initializing variables and environment varaibles
@@ -95,19 +93,21 @@ class FreelancerFinder::CLI
     print "\n\t[*] Hello #{@username}! [*]\t\n".blue
   end
 
+  # create scraper instance and scrape the all the jobs on the first page
   def scrape_jobs
     @scraper = FreelancerFinder::Scraper.new
+    @scraper.scrape_recent_jobs
   end
 
   def show_menu
 
-    puts "[+] #{FreelancerFinder::Job.all.count} Listings Scraped [+]".magenta
+    puts "[+] #{FreelancerFinder::Job.all.count} Jobs Scraped [+]".magenta
     puts "_____________________________________________________________"
     puts " # |  COMMANDS     |           DESCRIPTION                   |"
-    puts " 1 | show recent   |  Show most recent job listings(1st Page)|".green
-    puts " 2 | scrape more   |  Scrape Additional Pages of listings    |".green
-    puts " 3 | search        |  Find listings by search term           |".green
-    puts " 4 | search by pay |  Find listings by pay range             |".green
+    puts " 1 | show recent   |  Show most recent job jobs(1st Page)    |".green
+    puts " 2 | scrape more   |  Scrape Additional Pages of jobs        |".green
+    puts " 3 | search        |  Find jobs by search term               |".green
+    puts " 4 | search by pay |  Find jobs by pay range                 |".green
     puts "00 | exit          |  Exit Program                           |".red
     puts "___|_______________|_________________________________________|"
 
@@ -119,24 +119,24 @@ class FreelancerFinder::CLI
     when "0", "00", "exit"
       return choice
     when "1", "show recent"
-      listings = show_recent_listings
+      jobs = show_recent_jobs
     when "2", "scrape more"
       scrape_more_pages
-      listings = ""
+      jobs = ""
     when "3", "search"
-      listings = find_listings_by_term
+      jobs = find_jobs_by_term
     when "4", "search by pay"
-      listings = find_listings_by_pay
+      jobs = find_jobs_by_pay
     else
       puts "Invalid command!"
       puts "Please Enter a Valid Menu Choice!"
     end
 
 
-    display_listings(listings) if listings.class == Array
+    display_jobs(jobs) if jobs.class == Array
   end
 
-  # prompts user for a job listing entry choice from the index numbers listed
+  # prompts user for a job job entry choice from the index numbers listed
   def get_menu_choice
 
     valid_opts = [
@@ -150,7 +150,6 @@ class FreelancerFinder::CLI
     ]
 
     response = ""
-    # until response == "exit" || response == "00" || response.to_i.between?(1,4)
     until valid_opts.include?(response)
       print "Please Enter a Command or Number: ".blue
       response = gets.chomp.downcase
@@ -162,13 +161,13 @@ class FreelancerFinder::CLI
   end
 
 
-  # takes a array of job listing objects as a argument and displays each title and averge bid or budget range along with a number so the user can choose it
-  def display_listings(listings)
+  # takes a array of job job objects as a argument and displays each title and averge bid or budget range along with a number so the user can choose it
+  def display_jobs(jobs)
 
-    listings.each.with_index(1) do |job, index|
+    jobs.each.with_index(1) do |job, index|
       print "#{index}. #{job.title} - ".green
 
-      # this if statement prevents from displaying any blank values (some listings have one or the other value)
+      # this if statement prevents from displaying any blank values (some jobs have one or the other value)
       if job.avg_bid
         print "#{job.avg_bid}\n".green
       elsif job.budget
@@ -185,69 +184,70 @@ class FreelancerFinder::CLI
     puts "| exit -> Exit Program |".red
     puts "| 0 -> Return to menu  |"
     puts "|______________________|"
-    get_user_selection(listings)
+    get_user_selection(jobs)
   end
 
-  # takes in the listing objects array as a argument then prompts user for a valid listing choice between 1 and listings array size then returns the selected listing object
-  def get_user_selection(listings)
+  # takes in the job objects array as a argument then prompts user for a valid job choice between 1 and jobs array size then returns the selected job object
+  def get_user_selection(jobs)
 
-    if listings.empty?
-      puts "No listings found!!".red
+    # check if jobs is empty and print message and return with "0" so it brings us to the menu
+    if jobs.empty?
+      puts "No jobs found!!".red
       puts "Press enter to return to Menu".magenta
       gets
       clear_screen
       return "0"
     end
 
-    selected_listing = ""
+    selected_job = ""
 
-    puts "[+] Displaying #{listings.count} Listings [+]".magenta
+    puts "[+] Displaying #{jobs.count} Listings [+]".magenta
 
     # prompt user until a valid command is recieved
-    until selected_listing.to_i.between?(1, listings.count) || selected_listing == "exit" || selected_listing == "0"
-      print "Please select a job listings by number: ".blue
-      selected_listing = gets.chomp.downcase
+    until selected_job.to_i.between?(1, jobs.count) || selected_job == "exit" || selected_job == "0"
+      print "Please select a job jobs by number: ".blue
+      selected_job = gets.chomp.downcase
     end
 
     clear_screen
 
-    if selected_listing == "0" || selected_listing == "exit" # return to main menu and return the value of display_listings
-      return selected_listing
+    if selected_job == "0" || selected_job == "exit" # return to main menu and return the value of display_jobs
+      return selected_job
     else
-      listings[selected_listing.to_i - 1]  # if user selected the exit command return nil otherwise return the selected listing
+      jobs[selected_job.to_i - 1]  # if user selected the exit command return nil otherwise return the selected job
     end
 
   end
 
   # takes a job instance as a argument then instructs the scraper object to scrape the details
-  def show_job_details(job_listing)
+  def show_job_details(job_job)
 
-    @scraper.scrape_details(job_listing)
-    job_listing.print_info
-    job_listing
+    @scraper.scrape_details(job_job)
+    job_job.print_info
+    job_job
   end
 
-  # this method asks user how many listings they want to view then returns that number of listings
-  def show_recent_listings
+  # this method asks user how many jobs they want to view then returns that number of jobs
+  def show_recent_jobs
 
-    max_listings = ""
+    max_jobs = ""
 
-    until max_listings.to_i.between?(1, FreelancerFinder::Job.all.count)
+    until max_jobs.to_i.between?(1, FreelancerFinder::Job.all.count)
       puts "#{FreelancerFinder::Job.all.count} Total Listings to Choose From!".magenta
-      print "How many listings would you like to see?: ".blue
-      max_listings = gets.chomp.downcase
+      print "How many jobs would you like to see?: ".blue
+      max_jobs = gets.chomp.downcase
     end
 
-    max_listings = max_listings.to_i - 1
+    max_jobs = max_jobs.to_i - 1
 
-    listings = []
+    jobs = []
 
     FreelancerFinder::Job.all.each.with_index do |job, index|
-      listings << job
-      break if index >= max_listings
+      jobs << job
+      break if index >= max_jobs
     end
 
-    listings
+    jobs
   end
 
   # this method asks user how many pages they want to scrape then sends the the page urls to a scraper instance which scrapes and creates job instances
@@ -278,25 +278,25 @@ class FreelancerFinder::CLI
     FreelancerFinder::Job.all
   end
 
-  # prompts user for a search term then returns all the listings that have that term in their title, description or tags
-  def find_listings_by_term
+  # prompts user for a search term then returns all the jobs that have that term in their title, description or tags
+  def find_jobs_by_term
 
     print "\nEnter a search term to filter jobs by: ".blue
     search_term = gets.strip
 
-    listings = FreelancerFinder::Job.all.find_all do |job|
+    jobs = FreelancerFinder::Job.all.find_all do |job|
       job.title.include?("#{search_term}") || job.short_description.include?("#{search_term}") || !!job.tags.detect {|tag| tag.include?("#{search_term}")}
     end
 
-    listings
+    jobs
   end
 
-  # this method prompts user for a min and max pay range then returns all the listings that fall within that range
-  def find_listings_by_pay
+  # this method prompts user for a min and max pay range then returns all the jobs that fall within that range
+  def find_jobs_by_pay
 
     min_pay = 0
     max_pay = 0
-    puts "View all job listings in a certain pay range"
+    puts "View all job jobs in a certain pay range"
 
     until min_pay > 0 && max_pay > 0 && max_pay >= min_pay                     # until loop for input validation
       print "Enter the low end of pay range: ".blue
@@ -305,7 +305,7 @@ class FreelancerFinder::CLI
       max_pay  = gets.chomp.to_i
     end
 
-    listings = FreelancerFinder::Job.all.find_all do |job|
+    jobs = FreelancerFinder::Job.all.find_all do |job|
 
       if job.budget_range
 
@@ -320,14 +320,14 @@ class FreelancerFinder::CLI
       end
 
       if job.avg_bid
-        job.avg_bid.match(/\d+/)[0].to_i.between?(min_pay, max_pay)       # return listing if avg_bid is between min pay and max pay
+        job.avg_bid.match(/\d+/)[0].to_i.between?(min_pay, max_pay)       # return job if avg_bid is between min pay and max pay
       end
 
     end
 
-    puts "[*] Found #{listings.count} jobs with pay between #{min_pay} and #{max_pay} [*]".magenta
+    puts "[*] Found #{jobs.count} jobs with pay between #{min_pay} and #{max_pay} [*]".magenta
 
-    listings
+    jobs
   end
 
   # takes a argument of a ratio, then dislays a progress bar with that percent of the bar filled with '#'
@@ -338,14 +338,14 @@ class FreelancerFinder::CLI
     print "] DONE!\n" if progress_ratio == 1
   end
 
-  # takes a listing object as a argument and asks the user if they want to open the listing up in their browser
-  def open_in_browser?(listing)
-    puts "\nURL: #{listing.full_url}"
-    print "Open listing page in browser?(yes/no): ".blue
+  # takes a job object as a argument and asks the user if they want to open the job up in their browser
+  def open_in_browser?(job)
+    puts "\nURL: #{job.full_url}"
+    print "Open job page in browser?(yes/no): ".blue
     response = gets.chomp.downcase
 
     if response == "y" || response == "yes"
-      system("xdg-open #{listing.full_url}")
+      system("xdg-open #{job.full_url}")
     end
   end
 
