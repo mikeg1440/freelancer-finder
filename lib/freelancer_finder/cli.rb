@@ -2,7 +2,7 @@
 
 class FreelancerFinder::CLI
 
-  attr_accessor :scraper, :last_jobs, :username, :screen_size, :last_scraped_page
+  attr_accessor :scraper, :last_results, :username, :screen_size, :last_scraped_page
 
 
   # this method starts the program by gretting the user by current username then scraping the first page and showing the menu
@@ -32,7 +32,6 @@ class FreelancerFinder::CLI
       show_job_details(job)
       open_in_browser?(job)
     end
-
     # selected_job
     job
   end
@@ -108,6 +107,9 @@ class FreelancerFinder::CLI
     puts " 2 | scrape more   |  Scrape Additional Pages of jobs        |".green
     puts " 3 | search        |  Find jobs by search term               |".green
     puts " 4 | search by pay |  Find jobs by pay range                 |".green
+    if @last_results
+      puts "   | results       |  Show list of jobs just shown           |"
+    end
     puts "00 | exit          |  Exit Program                           |".red
     puts "___|_______________|_________________________________________|"
 
@@ -127,6 +129,8 @@ class FreelancerFinder::CLI
       jobs = find_jobs_by_term
     when "4", "search by pay"
       jobs = find_jobs_by_pay
+    when "results"
+      jobs = show_last_results
     else
       puts "Invalid command!"
       puts "Please Enter a Valid Menu Choice!"
@@ -146,7 +150,8 @@ class FreelancerFinder::CLI
       "show recent",
       "scrape more",
       "search",
-      "search by pay"
+      "search by pay",
+      "results"
     ]
 
     response = ""
@@ -163,6 +168,8 @@ class FreelancerFinder::CLI
 
   # takes a array of job job objects as a argument and displays each title and averge bid or budget range along with a number so the user can choose it
   def display_jobs(jobs)
+
+    @last_results = jobs
 
     jobs.each.with_index(1) do |job, index|
       print "#{index}. #{job.title} - ".green
@@ -185,6 +192,10 @@ class FreelancerFinder::CLI
     puts "| 0 -> Return to menu  |"
     puts "|______________________|"
     get_user_selection(jobs)
+  end
+
+  def show_last_results
+    @last_results ||= "0"
   end
 
   # takes in the job objects array as a argument then prompts user for a valid job choice between 1 and jobs array size then returns the selected job object
