@@ -2,7 +2,7 @@
 
 class FreelancerFinder::Scraper
 
-  attr_accessor :doc, :base_url
+  attr_accessor :base_url
 
   def initialize(url = "https://www.freelancer.com/jobs/")
     @base_url = url
@@ -10,15 +10,18 @@ class FreelancerFinder::Scraper
     self
   end
 
+  # scrapes the most recent 50 listings
   def scrape_recent_jobs
     scrape_data_from_url(@base_url)
   end
 
+  # takes a url as arugment and scrapes the data from it
   def scrape_data_from_url(url)
     doc = open_from_url(url)
     scrape_data(doc)
   end
 
+  # this method takes a url as argument and returns a nokogiri document object
   def open_from_url(url)
     Nokogiri::HTML(open(url))
   end
@@ -51,6 +54,23 @@ class FreelancerFinder::Scraper
     end
 
   end
+
+
+  # this method scrapes the details from the individual listing pages after user chooses what listing they want to view
+  def scrape_details(job_listing)
+
+    listing_doc = open_from_url(job_listing.full_url)
+
+    scrape_budget(listing_doc, job_listing)
+
+    scrape_description(listing_doc, job_listing)
+
+    scrape_bids(listing_doc, job_listing)
+
+  end
+
+
+  private
 
   def scrape_title(listing)
     listing.css(".JobSearchCard-primary-heading a").text.strip
@@ -98,19 +118,6 @@ class FreelancerFinder::Scraper
 
   def scrape_listing_url(listing)
     listing.css(".JobSearchCard-primary-heading-link")[0]['href']
-  end
-
-  # this method scrapes the details from the individual listing pages after user chooses what listing they want to view
-  def scrape_details(job_listing)
-
-    listing_doc = open_from_url(job_listing.full_url)
-
-    scrape_budget(listing_doc, job_listing)
-
-    scrape_description(listing_doc, job_listing)
-
-    scrape_bids(listing_doc, job_listing)
-
   end
 
   def scrape_budget(listing_doc, job_listing)
