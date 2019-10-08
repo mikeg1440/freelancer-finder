@@ -108,7 +108,7 @@ class FreelancerFinder::CLI
     puts " 3 | search        |  Find jobs by search term               |".green
     puts " 4 | search by pay |  Find jobs by pay range                 |".green
     if @last_results
-      puts "   | results       |  Show list of jobs just shown           |"
+      puts " 5 | results       |  See previous results agian             |".green
     end
     puts "00 | exit          |  Exit Program                           |".red
     puts "___|_______________|_________________________________________|"
@@ -129,7 +129,7 @@ class FreelancerFinder::CLI
       jobs = find_jobs_by_term
     when "4", "search by pay"
       jobs = find_jobs_by_pay
-    when "results"
+    when "5", "results"
       jobs = show_last_results
     else
       puts "Invalid command!"
@@ -146,7 +146,7 @@ class FreelancerFinder::CLI
     valid_opts = [
       "exit",
       "0", "00",
-      "1","2","3","4",
+      "1","2","3","4","5",
       "show recent",
       "scrape more",
       "search",
@@ -187,10 +187,10 @@ class FreelancerFinder::CLI
       print "\n"
     end
 
-    puts "\n_______________________"
-    puts "| exit -> Exit Program |".red
-    puts "| 0 -> Return to menu  |"
-    puts "|______________________|"
+    puts "\n _____________________________"
+    puts "| 'exit' -> Exit Program      |".red
+    puts "| '0' or 'menu' -> Goto menu  |"
+    puts "|_____________________________|"
     get_user_selection(jobs)
   end
 
@@ -214,15 +214,18 @@ class FreelancerFinder::CLI
 
     puts "[+] Displaying #{jobs.count} Listings [+]".magenta
 
+    valid_cmds = ["exit", "0", "menu"]
+
     # prompt user until a valid command is recieved
-    until selected_job.to_i.between?(1, jobs.count) || selected_job == "exit" || selected_job == "0"
+    until selected_job.to_i.between?(1, jobs.count) || valid_cmds.include?(selected_job) # selected_job == "exit" || selected_job == "0" || selected_job == "menu"
       print "Please select a job jobs by number: ".blue
       selected_job = gets.chomp.downcase
     end
 
     clear_screen
 
-    if selected_job == "0" || selected_job == "exit" # return to main menu and return the value of display_jobs
+    if valid_cmds.include?(selected_job)# == "0" || selected_job == "exit" || selected_job == "menu" # return to main menu and return the value of display_jobs
+      return "0" if selected_job == "menu"
       return selected_job
     else
       jobs[selected_job.to_i - 1]  # if user selected the exit command return nil otherwise return the selected job
@@ -267,6 +270,8 @@ class FreelancerFinder::CLI
     pages_to_scrape = 0
 
     clear_screen
+    clear_screen
+
     until pages_to_scrape != 0
       print "\nHow many pages would you like to scrape?: ".blue
       pages_to_scrape = gets.chomp.to_i
@@ -321,8 +326,9 @@ class FreelancerFinder::CLI
       if job.budget_range
 
         if job.budget_range.count > 1       # if we have a budget_range then check if the budget falls within our min and max pay
-          budget_min = job.budget_range[0].match(/\d+/)[0].to_i
-          budget_max = job.budget_range[1].match(/\d+/)[0].to_i
+
+          budget_min = job.budget_range[0].match(/\d+/)[0].to_i if job.budget_range[0].class == String
+          budget_max = job.budget_range[1].match(/\d+/)[0].to_i if job.budget_range[1].class == String
           max_pay.between?(budget_min, budget_max)
           min_pay.between?(budget_min, budget_max)
         else                                  # else check if the budget_range is between the min and max pay
