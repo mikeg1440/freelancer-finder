@@ -6,8 +6,12 @@ class FreelancerFinder::Scraper
 
   def initialize(url = "https://www.freelancer.com/jobs/")
     @base_url = url
-    scrape_data_from_url(url)
+    # scrape_data_from_url(url)
     self
+  end
+
+  def scrape_recent_jobs
+    scrape_data_from_url(@base_url)
   end
 
   def scrape_data_from_url(url)
@@ -108,8 +112,6 @@ class FreelancerFinder::Scraper
     scrape_bids(listing_doc, job_listing)
 
   end
-
-  private
 
   def scrape_budget(listing_doc, job_listing)
     if listing_doc.css(".PageProjectViewLogout-header-byLine").text.match(/[\$€₹][\d]+ ?- ?[\$€₹]?\d+.*/)
