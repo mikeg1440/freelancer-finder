@@ -8,20 +8,20 @@ class FreelancerFinder::CLI
   # this method starts the program by gretting the user by current username then scraping the first page and showing the menu
   def call
 
-    get_environment
+    get_environment       # gets and sets some environmental variables that we will need
     greet_user
-    scrape_jobs
+    scrape_jobs           # scrapes the 50 most recent job listings to start off
 
     ret_value = ""
-    # loop program until return value is falsey
-    until ret_value == "exit" || ret_value == "00"
-      ret_value = run         # store run methods return value in ret_value so we can check it for the loop
+
+    until ret_value == "exit" || ret_value == "00"        # loop program until return value is one of the exit commands
+      ret_value = run                                # store run methods return value in ret_value so we can check it for exit commands
     end
 
     farewell_message
-
   end
 
+  # this is the main program flow method, each user 'turn' will complete this method and return it to the 'call' method until it returns a exit command
   def run
     show_menu
 
@@ -40,7 +40,7 @@ class FreelancerFinder::CLI
   def get_environment
     @last_scraped_page = 0
     @username = ENV['USER']
-    @screen_size = `tput cols`.strip.to_i
+    @screen_size = `tput cols`.strip.to_i    # gets the terminal output of `tput cols` and converts to int and stores as screen_size
 
   end
 
@@ -84,7 +84,7 @@ class FreelancerFinder::CLI
                                                                                                                        '''
     clear_screen
 
-    if (rand 2) == 1
+    if (rand 2) == 1        # should switch between true and false to randomly print one of the banners everytime
       puts banner_1.blue
     else
       puts banner_2.blue
@@ -98,8 +98,9 @@ class FreelancerFinder::CLI
     @scraper.scrape_recent_jobs
   end
 
-  def show_menu
 
+  # shows user the menu options with a short description
+  def show_menu
     puts "[+] #{FreelancerFinder::Job.all.count} Jobs Scraped [+]".magenta
     puts "_____________________________________________________________"
     puts " # |  COMMANDS     |           DESCRIPTION                   |"
@@ -107,14 +108,14 @@ class FreelancerFinder::CLI
     puts " 2 | scrape more   |  Scrape Additional Pages of jobs        |".green
     puts " 3 | search        |  Find jobs by search term               |".green
     puts " 4 | search by pay |  Find jobs by pay range                 |".green
-    if @last_results
+    if @last_results                                         # if @last_results is valid then show the 'see previous results' command
       puts " 5 | results       |  See previous results agian             |".green
     end
     puts "00 | exit          |  Exit Program                           |".red
     puts "___|_______________|_________________________________________|"
-
   end
 
+  # takes the users menu choice as a argument and calls the corresponding method, then sends array of jobs to display_jobs method
   def handle_input(choice)
 
     case choice
@@ -136,14 +137,13 @@ class FreelancerFinder::CLI
       puts "Please Enter a Valid Menu Choice!"
     end
 
-
     display_jobs(jobs) if jobs.class == Array
   end
 
-  # prompts user for a job job entry choice from the index numbers listed
+  # prompts user for a job job entry choice from the index numbers listed for each job
   def get_menu_choice
 
-    valid_opts = [
+    valid_cmds = [      # array of valid commands we will accept
       "exit",
       "0", "00",
       "1","2","3","4","5",
@@ -155,7 +155,7 @@ class FreelancerFinder::CLI
     ]
 
     response = ""
-    until valid_opts.include?(response)
+    until valid_cmds.include?(response)
       print "Please Enter a Command or Number: ".blue
       response = gets.chomp.downcase
     end
@@ -171,11 +171,17 @@ class FreelancerFinder::CLI
 
     @last_results = jobs
 
+    print "\n\t".green
+    print "_".green*(@screen_size*0.7)
+    print "\n\t|\n".green
     jobs.each.with_index(1) do |job, index|
-      print "#{index}. ".green
+      print "\t| #{index}. ".green
       job.print_summary
-      print "\n"
+      print "\n\t|\n".green
     end
+
+    print "\t|".green
+    print "_".green*(@screen_size*0.7)
 
     puts "\n _____________________________"
     puts "| 'exit' -> Exit Program      |".red
@@ -188,7 +194,7 @@ class FreelancerFinder::CLI
     @last_results ||= "0"
   end
 
-  # takes in the job objects array as a argument then prompts user for a valid job choice between 1 and jobs array size then returns the selected job object
+  # takes in the job objects array as a argument then prompts user for a valid job choice between 1 and jobs array size then returns the selected job instance
   def get_user_selection(jobs)
 
     # check if jobs is empty and print message and return with "0" so it brings us to the menu
@@ -205,7 +211,6 @@ class FreelancerFinder::CLI
     puts "[+] Displaying #{jobs.count} Listings [+]".magenta
 
     valid_cmds = ["exit", "0", "menu"]
-
     # prompt user until a valid command is recieved
     until selected_job.to_i.between?(1, jobs.count) || valid_cmds.include?(selected_job) # selected_job == "exit" || selected_job == "0" || selected_job == "menu"
       print "Please select a job jobs by number: ".blue
@@ -214,21 +219,19 @@ class FreelancerFinder::CLI
 
     clear_screen
 
-    if valid_cmds.include?(selected_job)# == "0" || selected_job == "exit" || selected_job == "menu" # return to main menu and return the value of display_jobs
+    if valid_cmds.include?(selected_job) # check for valid commands for exit program or return to menu
       return "0" if selected_job == "menu"
       return selected_job
-    else
+    else                # or else return the selected job instance
       jobs[selected_job.to_i - 1]  # if user selected the exit command return nil otherwise return the selected job
     end
-
   end
 
   # takes a job instance as a argument then instructs the scraper object to scrape the details
-  def show_job_details(job_job)
-
-    @scraper.scrape_details(job_job)
-    job_job.print_info
-    job_job
+  def show_job_details(job)
+    @scraper.scrape_details(job)
+    job.print_info
+    job
   end
 
   # this method asks user how many jobs they want to view then returns that number of jobs
@@ -311,31 +314,7 @@ class FreelancerFinder::CLI
       max_pay  = gets.chomp.to_i
     end
 
-    jobs = FreelancerFinder::Job.all.find_all do |job|
-
-      if job.budget_range
-
-        if job.budget_range.count > 1       # if we have a budget_range then check if the budget falls within our min and max pay
-
-          budget_min = job.budget_range[0].match(/\d+/)[0].to_i if job.budget_range[0].class == String
-          budget_max = job.budget_range[1].match(/\d+/)[0].to_i if job.budget_range[1].class == String
-          max_pay.between?(budget_min, budget_max)
-          min_pay.between?(budget_min, budget_max)
-        else                                  # else check if the budget_range is between the min and max pay
-          job.budget_range.between?(min_pay, max_pay)
-        end
-      end
-
-      if job.avg_bid
-
-        if job.avg_bid.class.is_a? MatchData                          # if the avg_bid is a match for some reason get the matched text of the first match element
-          job.avg_bid[0].match(/\d+/)[0].to_i.between?(min_pay, max_pay)    # return job if avg_bid is between min pay and max pay
-        else
-          job.avg_bid.match(/\d+/)[0].to_i.between?(min_pay, max_pay)       # return job if avg_bid is between min pay and max pay
-        end
-      end
-
-    end
+    jobs = FreelancerFinder::Job.find_jobs_in_pay_range(min_pay, max_pay)
 
     puts "[*] Found #{jobs.count} jobs with pay between #{min_pay} and #{max_pay} [*]".magenta
 
