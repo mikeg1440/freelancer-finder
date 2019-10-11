@@ -16,6 +16,23 @@ class FreelancerFinder::Job
     self
   end
 
+  def print_summary
+
+    print "#{self.title} - ".green
+
+    if self.avg_bid
+      print "#{self.avg_bid}\n".green
+    elsif self.budget
+      print "#{self.budget}\n".green
+    elsif self.budget_range
+      print "#{self.budget_range.join(" - ")}".green
+    else
+      print "\n"
+    end
+
+
+  end
+
   def print_info
 
     puts "\e[H\e[2J" # clear terminal screen

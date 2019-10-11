@@ -172,18 +172,8 @@ class FreelancerFinder::CLI
     @last_results = jobs
 
     jobs.each.with_index(1) do |job, index|
-      print "#{index}. #{job.title} - ".green
-
-      # this if statement prevents from displaying any blank values (some jobs have one or the other value)
-      if job.avg_bid
-        print "#{job.avg_bid}\n".green
-      elsif job.budget
-        print "#{job.budget}\n".green
-      elsif job.budget_range
-        print "#{job.budget_range.join(" - ")}".green
-      else
-        print "\n"
-      end
+      print "#{index}. ".green
+      job.print_summary
       print "\n"
     end
 
@@ -272,24 +262,24 @@ class FreelancerFinder::CLI
     clear_screen
     clear_screen
 
+    # loop untl we get a valid number of pages to scrape
     until pages_to_scrape != 0
       print "\nHow many pages would you like to scrape?: ".blue
       pages_to_scrape = gets.chomp.to_i
     end
 
-    end_page = last_scraped_page + pages_to_scrape    # calculate our last page number
+    ending_page = last_scraped_page + pages_to_scrape    # calculate our last page number
     @last_scraped_page += 1
 
-
     puts "\n"
-    (@last_scraped_page..end_page).each.with_index(1) do |page, index|
+    (@last_scraped_page..ending_page).each.with_index(1) do |page, index|
       progress_bar(index.to_f / pages_to_scrape)
       @scraper.scrape_data_from_url("#{@scraper.base_url}#{page}")
     end
 
     puts "\nSuccesfully Scraped #{pages_to_scrape} Pages!".magenta
 
-    @last_scraped_page = end_page
+    @last_scraped_page = ending_page
 
     FreelancerFinder::Job.all
   end
@@ -337,7 +327,12 @@ class FreelancerFinder::CLI
       end
 
       if job.avg_bid
-        job.avg_bid.match(/\d+/)[0].to_i.between?(min_pay, max_pay)       # return job if avg_bid is between min pay and max pay
+
+        if job.avg_bid.class.is_a? MatchData                          # if the avg_bid is a match for some reason get the matched text of the first match element
+          job.avg_bid[0].match(/\d+/)[0].to_i.between?(min_pay, max_pay)    # return job if avg_bid is between min pay and max pay
+        else
+          job.avg_bid.match(/\d+/)[0].to_i.between?(min_pay, max_pay)       # return job if avg_bid is between min pay and max pay
+        end
       end
 
     end
