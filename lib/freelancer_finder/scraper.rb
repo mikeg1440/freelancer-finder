@@ -135,18 +135,19 @@ class FreelancerFinder::Scraper
 
   end
 
+  # this takes a Job instance and a Nokogiri instance of the jobs details page as arguments and scrapes the bid info from the page and saves it under the job instance
   def scrape_bids(listing_doc, job_listing)
 
     job_listing.bid_summary = listing_doc.css(".Card-heading").first.text.strip
 
     if listing_doc.css(".Card-header").class == nil
+
       job_listing.bid_summary = listing_doc.css(".Card-header").first.text.strip
       job_listing.bids = listing_doc.css(".Card-header").text.split("\n")[3].strip
     end
 
     job_listing.bids = job_listing.bid_summary.match(/^\d+/)
     job_listing.avg_bid = job_listing.bid_summary.match(/[\$€₹]\d+/)
-
   end
 
 end
