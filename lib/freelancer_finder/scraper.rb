@@ -138,7 +138,7 @@ class FreelancerFinder::Scraper
   # this takes a Job instance and a Nokogiri instance of the jobs details page as arguments and scrapes the bid info from the page and saves it under the job instance
   def scrape_bids(listing_doc, job_listing)
 
-    job_listing.bid_summary = listing_doc.css(".Card-heading").first.text.strip
+    job_listing.bid_summary = listing_doc.css(".Card-heading").first.text.strip if listing_doc.css(".Card-heading")
 
     if listing_doc.css(".Card-header").class == nil
 
