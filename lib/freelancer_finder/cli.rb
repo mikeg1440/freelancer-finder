@@ -5,7 +5,7 @@ class FreelancerFinder::CLI
   attr_accessor :scraper, :last_results, :username, :screen_size, :last_scraped_page
 
 
-  # this method starts the program by gretting the user by current username then scraping the first page and showing the menu
+  # this method starts the program by getting the user by current username then scraping the first page and showing the menu
   def call
 
     get_environment       # gets and sets some environmental variables that we will need
@@ -41,8 +41,8 @@ class FreelancerFinder::CLI
     @last_scraped_page = 0
     @username = ENV['USER']
     @screen_size = `tput cols`.strip.to_i    # gets the terminal output of `tput cols` and converts to int and stores as screen_size
-
   end
+
 
   def greet_user
     banner_1 = '''
@@ -92,6 +92,7 @@ class FreelancerFinder::CLI
     print "\n\t[*] Hello #{@username}! [*]\t\n".blue
   end
 
+
   # create scraper instance and scrape the all the jobs on the first page
   def scrape_jobs
     @scraper = FreelancerFinder::Scraper.new
@@ -114,6 +115,7 @@ class FreelancerFinder::CLI
     puts "00 | exit          |  Exit Program                           |".red
     puts "___|_______________|_________________________________________|"
   end
+
 
   # takes the users menu choice as a argument and calls the corresponding method, then sends array of jobs to display_jobs method
   def handle_input(choice)
@@ -140,6 +142,7 @@ class FreelancerFinder::CLI
     display_jobs(jobs) if jobs.class == Array
   end
 
+
   # prompts user for a job job entry choice from the index numbers listed for each job
   def get_menu_choice
 
@@ -161,7 +164,6 @@ class FreelancerFinder::CLI
     end
 
     clear_screen
-
     response
   end
 
@@ -193,16 +195,21 @@ class FreelancerFinder::CLI
     get_user_selection(jobs)
   end
 
+
+  # return the previous results or "0" if no results
   def show_last_results
     @last_results ||= "0"
   end
 
+
+  # show user message when we don't find any jobs
   def print_no_results_message
     puts "No jobs found!!".red
     puts "Press enter to return to Menu".magenta
     gets
     clear_screen
   end
+
 
   # takes in the job objects array as a argument then prompts user for a valid job choice between 1 and jobs array size then returns the selected job instance
   def get_user_selection(jobs)
@@ -234,12 +241,14 @@ class FreelancerFinder::CLI
     end
   end
 
+
   # takes a job instance as a argument then instructs the scraper object to scrape the details
   def show_job_details(job)
     @scraper.scrape_details(job)
     job.print_info
     job
   end
+
 
   # this method asks user how many jobs they want to view then returns that number of jobs
   def show_recent_jobs
@@ -263,6 +272,7 @@ class FreelancerFinder::CLI
 
     jobs
   end
+
 
   # this method asks user how many pages they want to scrape then sends the the page urls to a scraper instance which scrapes and creates job instances
   def scrape_more_pages
@@ -294,6 +304,7 @@ class FreelancerFinder::CLI
     FreelancerFinder::Job.all
   end
 
+
   # prompts user for a search term then returns all the jobs that have that term in their title, description or tags
   def find_jobs_by_term
 
@@ -306,6 +317,7 @@ class FreelancerFinder::CLI
 
     jobs
   end
+
 
   # this method prompts user for a min and max pay range then returns all the jobs that fall within that range
   def find_jobs_by_pay
@@ -328,6 +340,7 @@ class FreelancerFinder::CLI
     jobs
   end
 
+
   # takes a argument of a ratio, then dislays a progress bar with that percent of the bar filled with '#'
   def progress_bar(progress_ratio)
     max = @screen_size * 0.8
@@ -335,6 +348,7 @@ class FreelancerFinder::CLI
     print "#".magenta * (progress_ratio * max)
     print "] DONE!\n" if progress_ratio == 1
   end
+
 
   # takes a job object as a argument and asks the user if they want to open the job up in their browser
   def open_in_browser?(job)
@@ -347,11 +361,13 @@ class FreelancerFinder::CLI
     end
   end
 
+
   # final message to user
   def farewell_message
     puts "Program Exiting...".red
     puts "Goodbye #{@username}!".blue
   end
+
 
   def clear_screen
     puts "\e[H\e[2J"

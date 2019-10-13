@@ -32,8 +32,8 @@ class FreelancerFinder::Job
     summary
   end
 
-  def print_summary         # prints the summary info we get from the main listing page
 
+  def print_summary         # prints the summary info we get from the main listing page
     print "#{self.title} - ".green
     if self.avg_bid
       print "#{self.avg_bid}".green
@@ -43,6 +43,7 @@ class FreelancerFinder::Job
       print "#{self.budget_range.join(" - ")}".green
     end
   end
+
 
   def job_in_range?( min, max)
     if self.budget_range
@@ -57,8 +58,8 @@ class FreelancerFinder::Job
         self.budget_range.between?(min, max)
       end
     end
-
   end
+
 
   def job_avg_bid_in_range?(min, max)
     if self.avg_bid
@@ -68,7 +69,6 @@ class FreelancerFinder::Job
         self.avg_bid.match(/\d+/)[0].to_i.between?(min, max)       # return job if avg_bid is between min pay and max pay
       end
     end
-
   end
 
 
@@ -81,6 +81,7 @@ class FreelancerFinder::Job
   end
 
 
+  # prints out the initial job info to terminal screen
   def print_info
 
     puts "\e[H\e[2J" # clear terminal screen
