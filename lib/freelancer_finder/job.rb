@@ -17,6 +17,19 @@ class FreelancerFinder::Job
   end
 
 
+  def job_summary
+    summary = "#{@@green}#{self.title} - "
+
+    if self.avg_bid
+      summary += "#{self.avg_bid}"
+    elsif self.budget
+      summary += "#{self.budget}"
+    elsif self.budget_range
+      summary += "#{self.budget_range.join(" - ")}"
+    end
+    summary
+  end
+
   def print_summary         # prints the summary info we get from the main listing page
 
     print "#{self.title} - ".green
@@ -31,38 +44,42 @@ class FreelancerFinder::Job
     end
   end
 
-  # takes a min and max for a range and finds all jobs that have pay or budget in that range
-  def self.find_jobs_in_pay_range(min_pay, max_pay)
-    jobs = self.all.find_all do |job|
+  def job_in_range?( min, max)
+    if self.budget_range
 
-      # if we have a budget range check if it falls with the pay reange we are looking for
-      if job.budget_range
+      if self.budget_range.count > 1       # if we have a budget_range then check if the budget falls within our min and max pay
 
-        if job.budget_range.count > 1       # if we have a budget_range then check if the budget falls within our min and max pay
-
-          budget_min = job.budget_range[0].match(/\d+/)[0].to_i if job.budget_range[0].class == String
-          budget_max = job.budget_range[1].match(/\d+/)[0].to_i if job.budget_range[1].class == String
-          max_pay.between?(budget_min, budget_max)
-          min_pay.between?(budget_min, budget_max)
-        else                                  # else check if the budget_range is between the min and max pay
-          job.budget_range.between?(min_pay, max_pay)
-        end
+        budget_min = self.budget_range[0].match(/\d+/)[0].to_i if self.budget_range[0].class == String
+        budget_max = self.budget_range[1].match(/\d+/)[0].to_i if self.budget_range[1].class == String
+        max.between?(budget_min, budget_max)
+        min.between?(budget_min, budget_max)
+      else                                  # else check if the budget_range is between the min and max pay
+        self.budget_range.between?(min, max)
       end
-
-      # if we have a average bid then check if that is in our range
-      if job.avg_bid
-        if job.avg_bid.class.is_a? MatchData                          # if the avg_bid is a match for some reason get the matched text of the first match element
-
-          job.avg_bid[0].match(/\d+/)[0].to_i.between?(min_pay, max_pay)    # return job if avg_bid is between min pay and max pay
-        else
-          job.avg_bid.match(/\d+/)[0].to_i.between?(min_pay, max_pay)       # return job if avg_bid is between min pay and max pay
-        end
-      end
-
     end
 
-    jobs
   end
+
+  def job_avg_bid_in_range?(min, max)
+    if self.avg_bid
+      if self.avg_bid.class == MatchData                          # if the avg_bid is a match for some reason get the matched text of the first match element
+        self.avg_bid[0].match(/\d+/)[0].to_i.between?(min, max)    # return self if avg_bid is between min pay and max pay
+      elsif self.avg_bid.class == String
+        self.avg_bid.match(/\d+/)[0].to_i.between?(min, max)       # return job if avg_bid is between min pay and max pay
+      end
+    end
+
+  end
+
+
+  # takes a min and max for a range and finds all jobs that have pay or budget in that range
+  def self.find_jobs_in_pay_range(min_pay, max_pay)
+    self.all.find_all do |job|
+      job if job.job_in_range?(min_pay, max_pay)
+      job if job.job_avg_bid_in_range?(min_pay, max_pay)
+    end
+  end
+
 
   def print_info
 
