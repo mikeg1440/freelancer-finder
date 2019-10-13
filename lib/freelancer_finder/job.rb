@@ -2,7 +2,8 @@
 
 class FreelancerFinder::Job
 
-  attr_accessor :title, :time_left, :short_description, :description, :tags, :budget, :budget_range, :base_url, :url, :bids, :avg_bid, :bid_summary
+  attr_accessor :title, :time_left, :short_description, :description, :tags
+  attr_accessor :budget, :budget_range, :base_url, :url, :bids, :avg_bid, :bid_summary
 
   @@green = "\u001b[32m"
   @@white = "\u001b[37m"
@@ -17,6 +18,7 @@ class FreelancerFinder::Job
   end
 
 
+  # returns a summary string for the job instance
   def job_summary
     summary = "#{@@green}#{self.title} - "
 
@@ -39,8 +41,6 @@ class FreelancerFinder::Job
       print "#{self.budget}".green
     elsif self.budget_range
       print "#{self.budget_range.join(" - ")}".green
-    # else
-    #   print "\n"
     end
   end
 
@@ -133,14 +133,16 @@ class FreelancerFinder::Job
     @base_url+@url
   end
 
+# This method is not being used i guess
   # class method to return a array of all the tags present from all
-  def self.tags
-    tags = []
-    @@all.map do |job|
-      job.tags.each {|tag| tags << tag unless tags.include?(tag) }
-    end
-    tags
-  end
+  # def self.tags
+  #   tags = []
+  #   @@all.each do |job|
+  #     job.tags.each {|tag| tags << tag unless tags.include?(tag) }
+  #   end
+  #   binding.pry
+  #   tags
+  # end
 
   def self.all
     @@all

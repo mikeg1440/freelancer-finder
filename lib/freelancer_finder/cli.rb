@@ -171,15 +171,18 @@ class FreelancerFinder::CLI
 
     @last_results = jobs
 
+    # the next 3 print statements are for creating the top of our results box
     print "\n\t".green
     print "_".green*(@screen_size*0.7)
     print "\n\t|\n".green
+
     jobs.each.with_index(1) do |job, index|
       print "\t| #{index}. ".green
       job.print_summary
       print "\n\t|\n".green
     end
 
+    # this is the bottom of the results box
     print "\t|".green
     print "_".green*(@screen_size*0.7)
 
@@ -194,15 +197,19 @@ class FreelancerFinder::CLI
     @last_results ||= "0"
   end
 
+  def print_no_results_message
+    puts "No jobs found!!".red
+    puts "Press enter to return to Menu".magenta
+    gets
+    clear_screen
+  end
+
   # takes in the job objects array as a argument then prompts user for a valid job choice between 1 and jobs array size then returns the selected job instance
   def get_user_selection(jobs)
 
     # check if jobs is empty and print message and return with "0" so it brings us to the menu
     if jobs.empty?
-      puts "No jobs found!!".red
-      puts "Press enter to return to Menu".magenta
-      gets
-      clear_screen
+      print_no_results_message
       return "0"
     end
 
@@ -212,7 +219,7 @@ class FreelancerFinder::CLI
 
     valid_cmds = ["exit", "0", "menu"]
     # prompt user until a valid command is recieved
-    until selected_job.to_i.between?(1, jobs.count) || valid_cmds.include?(selected_job) # selected_job == "exit" || selected_job == "0" || selected_job == "menu"
+    until selected_job.to_i.between?(1, jobs.count) || valid_cmds.include?(selected_job)
       print "Please select a job jobs by number: ".blue
       selected_job = gets.chomp.downcase
     end

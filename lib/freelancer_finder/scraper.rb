@@ -6,7 +6,6 @@ class FreelancerFinder::Scraper
 
   def initialize(url = "https://www.freelancer.com/jobs/")
     @base_url = url
-    # scrape_data_from_url(url)
     self
   end
 
@@ -34,7 +33,6 @@ class FreelancerFinder::Scraper
     listings.each do |listing|
 
       info = {}
-
       info[:title] = scrape_title(listing)
       info[:time_left] = scrape_time_left(listing)
       info[:short_description] = scrape_short_description(listing)
@@ -43,13 +41,11 @@ class FreelancerFinder::Scraper
       info[:url] = scrape_listing_url(listing)
       info[:tags] = scrape_tags(listing)
 
-      bid_info = scrape_bid_info(listing)
+      bid_info = scrape_bid_info(listing)     # scrape the bid info which returns a hash
 
-      info.merge!(bid_info)
-
+      info.merge!(bid_info)           # merge our bid_info hash with the rest of the info
 
       FreelancerFinder::Job.new(info) unless FreelancerFinder::Job.all.detect {|job| job.url == info[:url]}      # next create a job instance from the data we just scraped unless it exists already
-
 
     end
 
@@ -85,11 +81,7 @@ class FreelancerFinder::Scraper
   end
 
   def scrape_tags(listing)
-    info = {}
-    info[:tags] = listing.css(".JobSearchCard-primary-tags").text.split("\n").map {|tag| tag.strip unless tag.strip.empty? }
-
-    info[:tags] = info[:tags].compact
-    info[:tags]
+    listing.css(".JobSearchCard-primary-tags").text.split("\n").map {|tag| tag.strip unless tag.strip.empty? }.compact
   end
 
   def scrape_bid_info(listing)
@@ -141,7 +133,6 @@ class FreelancerFinder::Scraper
     job_listing.bid_summary = listing_doc.css(".Card-heading").first.text.strip if listing_doc.css(".Card-heading")
 
     if listing_doc.css(".Card-header").class == nil
-
       job_listing.bid_summary = listing_doc.css(".Card-header").first.text.strip
       job_listing.bids = listing_doc.css(".Card-header").text.split("\n")[3].strip
     end
