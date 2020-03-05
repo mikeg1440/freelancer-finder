@@ -20,7 +20,7 @@ class FreelancerFinder::Job
 
   # returns a summary string for the job instance
   def job_summary
-    summary = "#{@@green}#{self.title} - "
+    summary = "#{self.title} - "
 
     if self.avg_bid
       summary += "#{self.avg_bid}"
