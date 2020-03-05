@@ -33,18 +33,6 @@ class FreelancerFinder::Job
   end
 
 
-  def print_summary         # prints the summary info we get from the main listing page
-    print "#{self.title} - ".green
-    if self.avg_bid
-      print "#{self.avg_bid}".green
-    elsif self.budget
-      print "#{self.budget}".green
-    elsif self.budget_range
-      print "#{self.budget_range.join(" - ")}".green
-    end
-  end
-
-
   def job_in_range?( min, max)
     if self.budget_range
 
