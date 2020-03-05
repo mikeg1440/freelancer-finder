@@ -204,10 +204,35 @@ class FreelancerFinder::CLI
     print "_".green*(@screen_size*0.7)
 
     puts "\n _____________________________"
-    puts "| 'exit' -> Exit Program      |".red
-    puts "| '0' or 'menu' -> Goto menu  |"
-    puts "|_____________________________|"
-    get_user_selection(jobs)
+    # puts "| 'exit' -> Exit Program      |".red
+    # puts "| '0' or 'menu' -> Goto menu  |"
+    # puts "|_____________________________|"
+
+    response = get_input
+
+    case response
+    when "select"
+      job_num = @prompt.ask("Provide a job listing number: "){|num| num.in(1..jobs.count)}.to_i
+      job = jobs.find.with_index do |job, idx|
+        (job_num - 1) == idx
+      end
+    when "menu"
+      job = 0
+    when "exit"
+      job = nil
+    end
+
+    return job
+    # get_user_selection(jobs)
+  end
+
+  def get_input
+    return @prompt.select("What would you like to do?") do |menu|
+      menu.choice "Select a job", "select"
+      menu.choice "Goto menu", "menu"
+      menu.choice "Exit", "exit"
+    end
+
   end
 
 
