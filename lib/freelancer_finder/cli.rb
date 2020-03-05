@@ -216,10 +216,9 @@ class FreelancerFinder::CLI
       job = jobs.find.with_index do |job, idx|
         (job_num - 1) == idx
       end
-    when "menu"
-      job = 0
     when "exit"
-      job = nil
+      farewell_message
+      exit
     end
 
     return job
