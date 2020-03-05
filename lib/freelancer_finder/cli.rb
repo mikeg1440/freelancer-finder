@@ -2,7 +2,7 @@
 
 class FreelancerFinder::CLI
 
-  attr_accessor :scraper, :last_results, :username, :screen_size, :last_scraped_page
+  attr_accessor :scraper, :last_results, :username, :screen_size, :last_scraped_page, :prompt
 
 
   # this method starts the program by getting the user by current username then scraping the first page and showing the menu
@@ -41,6 +41,7 @@ class FreelancerFinder::CLI
     @last_scraped_page = 0
     @username = ENV['USER']
     @screen_size = `tput cols`.strip.to_i    # gets the terminal output of `tput cols` and converts to int and stores as screen_size
+    @prompt = TTY::Prompt.new
   end
 
 
