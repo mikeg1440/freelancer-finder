@@ -103,18 +103,7 @@ class FreelancerFinder::CLI
 
   # shows user the menu options with a short description
   def show_menu
-    # puts "[+] #{FreelancerFinder::Job.all.count} Jobs Scraped [+]".magenta
-    # puts "_____________________________________________________________"
-    # puts " # |  COMMANDS     |           DESCRIPTION                   |"
-    # puts " 1 | show recent   |  Show most recent job jobs(1st Page)    |".green
-    # puts " 2 | scrape more   |  Scrape Additional Pages of jobs        |".green
-    # puts " 3 | search        |  Find jobs by search term               |".green
-    # puts " 4 | search by pay |  Find jobs by pay range                 |".green
-    # if @last_results                                         # if @last_results is valid then show the 'see previous results' command
-    #   puts " 5 | results       |  See previous results agian             |".green
-    # end
-    # puts "00 | exit          |  Exit Program                           |".red
-    # puts "___|_______________|_________________________________________|"
+    clear_screen
 
     puts "[+] #{FreelancerFinder::Job.all.count} Jobs Scraped [+]".magenta
     puts "_____________________________________________________________"
