@@ -23,9 +23,9 @@ class FreelancerFinder::CLI
 
   # this is the main program flow method, each user 'turn' will complete this method and return it to the 'call' method until it returns a exit command
   def run
-    show_menu
+    job = handle_input(show_menu)
 
-    job = handle_input(get_menu_choice)     # here we the menu choice and handle the choice together and return value will be the selected job or exit command
+    # job = handle_input(get_menu_choice)     # here we the menu choice and handle the choice together and return value will be the selected job or exit command
 
     # if job is a valid job instance then show details and offer to open in browser
     if job.class == FreelancerFinder::Job
