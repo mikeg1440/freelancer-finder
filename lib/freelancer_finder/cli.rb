@@ -175,52 +175,28 @@ class FreelancerFinder::CLI
   # takes a array of job job objects as a argument and displays each title and averge bid or budget range along with a number so the user can choose it
   def display_jobs(jobs)
 
+    clear_screen
+
     @last_results = jobs
 
-    # the next 3 print statements are for creating the top of our results box
-    print "\n\t".green
-    print "_".green*(@screen_size*0.7)
-    print "\n\t|\n".green
+    choices = []
+    choices << {name: 'Return to Menu'.colorize(:magenta), value: 'menu'}
+    choices << {name: 'Exit'.colorize(:red), value: 'exit'}
 
-    jobs.each.with_index(1) do |job, index|
-      print "\t| #{index}. ".green
-      job.print_summary
-      print "\n\t|\n".green
-    end
+    choices += jobs.map.with_index(1) {|job, idx|  {name: "#{job.job_summary}".colorize(:light_blue), value: idx} }
+    jobSelection = prompt.select("Select a job posting (use the left and right arrows to navigate pages)\n#{'_'*(@screen_size-1)} ".colorize(:white), choices, per_page: 35)
 
-    # this is the bottom of the results box
-    print "\t|".green
-    print "_".green*(@screen_size*0.7)
-
-    puts "\n _____________________________"
-    # puts "| 'exit' -> Exit Program      |".red
-    # puts "| '0' or 'menu' -> Goto menu  |"
-    # puts "|_____________________________|"
-
-    response = get_input
-
-    case response
-    when "select"
-      job_num = @prompt.ask("Provide a job listing number: "){|num| num.in(1..jobs.count)}.to_i
-      job = jobs.find.with_index do |job, idx|
-        (job_num - 1) == idx
-      end
-    when "exit"
+    if jobSelection == "exit"
       farewell_message
       exit
+    elsif jobSelection == "menu"
+      job = "menu"
+    else
+      job = jobs.find.with_index {|job, idx| jobSelection == idx }
     end
+
 
     return job
-    # get_user_selection(jobs)
-  end
-
-  def get_input
-    return @prompt.select("What would you like to do?") do |menu|
-      menu.choice "Select a job", "select"
-      menu.choice "Goto menu", "menu"
-      menu.choice "Exit", "exit"
-    end
-
   end
 
 
