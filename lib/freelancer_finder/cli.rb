@@ -396,8 +396,10 @@ class FreelancerFinder::CLI
   # takes a job object as a argument and asks the user if they want to open the job up in their browser
   def open_in_browser?(job)
     puts "\nURL: #{job.full_url}"
-    print "Open job page in browser?(yes/no): ".blue
-    response = gets.chomp.downcase
+    # print "Open job page in browser?(yes/no): ".blue
+    # response = gets.chomp.downcase
+
+    response = @prompt.yes?("Open job page in browser?")
 
     if response == "y" || response == "yes"
       system("xdg-open #{job.full_url}")
