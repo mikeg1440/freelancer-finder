@@ -103,18 +103,32 @@ class FreelancerFinder::CLI
 
   # shows user the menu options with a short description
   def show_menu
+    # puts "[+] #{FreelancerFinder::Job.all.count} Jobs Scraped [+]".magenta
+    # puts "_____________________________________________________________"
+    # puts " # |  COMMANDS     |           DESCRIPTION                   |"
+    # puts " 1 | show recent   |  Show most recent job jobs(1st Page)    |".green
+    # puts " 2 | scrape more   |  Scrape Additional Pages of jobs        |".green
+    # puts " 3 | search        |  Find jobs by search term               |".green
+    # puts " 4 | search by pay |  Find jobs by pay range                 |".green
+    # if @last_results                                         # if @last_results is valid then show the 'see previous results' command
+    #   puts " 5 | results       |  See previous results agian             |".green
+    # end
+    # puts "00 | exit          |  Exit Program                           |".red
+    # puts "___|_______________|_________________________________________|"
+
     puts "[+] #{FreelancerFinder::Job.all.count} Jobs Scraped [+]".magenta
     puts "_____________________________________________________________"
-    puts " # |  COMMANDS     |           DESCRIPTION                   |"
-    puts " 1 | show recent   |  Show most recent job jobs(1st Page)    |".green
-    puts " 2 | scrape more   |  Scrape Additional Pages of jobs        |".green
-    puts " 3 | search        |  Find jobs by search term               |".green
-    puts " 4 | search by pay |  Find jobs by pay range                 |".green
-    if @last_results                                         # if @last_results is valid then show the 'see previous results' command
-      puts " 5 | results       |  See previous results agian             |".green
+    return @prompt.select("Please Select a Menu Option: ") do |menu|
+      menu.choice "show recent"
+      menu.choice "scrape more"
+      menu.choice "search"
+      menu.choice "search by pay"
+      if @last_results
+        menu.choice "results"
+      end
+      menu.choice "exit"
     end
-    puts "00 | exit          |  Exit Program                           |".red
-    puts "___|_______________|_________________________________________|"
+
   end
 
 
