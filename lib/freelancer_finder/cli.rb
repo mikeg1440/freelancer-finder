@@ -295,11 +295,14 @@ class FreelancerFinder::CLI
 
     max_jobs = ""
 
-    until max_jobs.to_i.between?(1, FreelancerFinder::Job.all.count)
-      puts "#{FreelancerFinder::Job.all.count} Total Listings to Choose From!".magenta
-      print "How many jobs would you like to see?: ".blue
-      max_jobs = gets.chomp.downcase
-    end
+    # until max_jobs.to_i.between?(1, FreelancerFinder::Job.all.count)
+    #   puts "#{FreelancerFinder::Job.all.count} Total Listings to Choose From!".magenta
+    #   print "How many jobs would you like to see?: ".blue
+    #   max_jobs = gets.chomp.downcase
+    # end
+
+    puts "#{FreelancerFinder::Job.all.count} Total Listings to Choose From!".magenta
+    max_jobs = @prompt.slider('How many jobs would you like to see?', max: FreelancerFinder::Job.all.count, step: 10)
 
     max_jobs = max_jobs.to_i - 1
 
