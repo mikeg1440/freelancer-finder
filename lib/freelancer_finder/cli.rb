@@ -199,7 +199,6 @@ class FreelancerFinder::CLI
     return job
   end
 
-
   # return the previous results or "0" if no results
   def show_last_results
     @last_results ||= "0"
@@ -212,37 +211,6 @@ class FreelancerFinder::CLI
     puts "Press enter to return to Menu".magenta
     gets
     clear_screen
-  end
-
-
-  # takes in the job objects array as a argument then prompts user for a valid job choice between 1 and jobs array size then returns the selected job instance
-  def get_user_selection(jobs)
-
-    # check if jobs is empty and print message and return with "0" so it brings us to the menu
-    if jobs.empty?
-      print_no_results_message
-      return "0"
-    end
-
-    selected_job = ""
-
-    puts "[+] Displaying #{jobs.count} Listings [+]".magenta
-
-    valid_cmds = ["exit", "0", "menu"]
-    # prompt user until a valid command is recieved
-    until selected_job.to_i.between?(1, jobs.count) || valid_cmds.include?(selected_job)
-      print "Please select a job jobs by number: ".blue
-      selected_job = gets.chomp.downcase
-    end
-
-    clear_screen
-
-    if valid_cmds.include?(selected_job) # check for valid commands for exit program or return to menu
-      return "0" if selected_job == "menu"
-      return selected_job
-    else                # or else return the selected job instance
-      jobs[selected_job.to_i - 1]  # if user selected the exit command return nil otherwise return the selected job
-    end
   end
 
 
