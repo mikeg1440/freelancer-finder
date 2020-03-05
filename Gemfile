@@ -8,3 +8,5 @@ gemspec
 gem 'nokogiri'
 gem 'colorize'
 gem 'pry-moves'
+
+gem "tty-prompt", "~> 0.20.0"
