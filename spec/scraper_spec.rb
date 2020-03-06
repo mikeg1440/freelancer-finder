@@ -1,0 +1,5 @@
+require 'nokogiri'
+require 'open-uri'
+require 'pry-moves'
+require_relative '../lib/freelancer_finder/scraper'
+require_relative '../lib/freelancer_finder/job'
