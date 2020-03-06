@@ -97,7 +97,9 @@ class FreelancerFinder::CLI
   # create scraper instance and scrape the all the jobs on the first page
   def scrape_jobs
     @scraper = FreelancerFinder::Scraper.new
-    @scraper.scrape_recent_jobs
+    @scraper.scrape_recent_jobs.each do |job_hash|
+      FreelancerFinder::Job.new(job_hash) unless FreelancerFinder::Job.all.detect {|job| job.path == job_hash[:path]}      # next create a job instance from the data we just scraped unless it exists already
+    end
   end
 
 
@@ -269,7 +271,9 @@ class FreelancerFinder::CLI
     puts "\n"
     (@last_scraped_page..ending_page).each.with_index(1) do |page, index|
       progress_bar(index.to_f / pages_to_scrape)
-      @scraper.scrape_data_from_url("#{@scraper.base_url}#{page}")
+      @scraper.scrape_data_from_url("#{@scraper.base_url}#{page}").each do |job_hash|
+        FreelancerFinder::Job.new(job_hash) unless FreelancerFinder::Job.all.detect {|job| job.path == job_hash[:path]}      # next create a job instance from the data we just scraped unless it exists already
+      end
     end
 
     puts "\nSuccesfully Scraped #{pages_to_scrape} Pages!".magenta
