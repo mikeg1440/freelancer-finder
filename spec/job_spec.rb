@@ -42,4 +42,12 @@ RSpec.describe FreelancerFinder::Job do
 
     end
   end
+
+  describe '#job_summary' do
+    it 'returns a summary of job listings' do
+      puts job.job_summary
+      expect(job.job_summary.match(/(.+) \- (.+)/))
+    end
+  end
+
 end
