@@ -138,12 +138,15 @@ class FreelancerFinder::Scraper
         job_listing.bids = listing_doc.css(".Card-header").text.split("\n")[3].strip
       end
 
-    rescue 
-      puts "Failed to Scrape Bid Data!".red
+    rescue
+      # puts "Failed to Scrape Bid Data!".red
+      puts "Failed to Scrape Bid Data!"
     end
 
-    job_listing.bids = job_listing.bid_summary.match(/^\d+/)
-    job_listing.avg_bid = job_listing.bid_summary.match(/[\$€₹]\d+/)
+    if job_listing.bids
+      job_listing.bids = job_listing.bid_summary.match(/^\d+/)
+      job_listing.avg_bid = job_listing.bid_summary.match(/[\$€₹]\d+/)
+    end
   end
 
 end
