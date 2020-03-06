@@ -10,3 +10,5 @@ gem 'colorize'
 gem 'pry-moves'
 
 gem "tty-prompt", "~> 0.20.0"
+
+gem "rspec", "~> 3.9"
