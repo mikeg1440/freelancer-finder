@@ -3,7 +3,7 @@
 class FreelancerFinder::Job
 
   attr_accessor :title, :time_left, :short_description, :description, :tags
-  attr_accessor :budget, :budget_range, :base_url, :url, :bids, :avg_bid, :bid_summary
+  attr_accessor :budget, :budget_range, :host, :path, :bids, :avg_bid, :bid_summary
 
   @@green = "\u001b[32m"
   @@white = "\u001b[37m"
@@ -119,7 +119,7 @@ class FreelancerFinder::Job
   end
 
   def full_url
-    @base_url+@url
+    @host+@path
   end
 
 # This method is not being used i guess
