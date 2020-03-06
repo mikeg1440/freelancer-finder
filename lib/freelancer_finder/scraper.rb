@@ -30,29 +30,29 @@ class FreelancerFinder::Scraper
 
     listings = document.css(".JobSearchCard-item")
 
-    listings.each do |listing|
+    listings.map do |listing|           # map listings to return a array of hashes with job info in each hash
 
       info = {}
       info[:title] = scrape_title(listing)
       info[:time_left] = scrape_time_left(listing)
       info[:short_description] = scrape_short_description(listing)
-      info[:base_url] = scrape_listing_url(listing)
-      info[:base_url] = @base_url.match(/http(s)*:\/\/(www\.)*([a-zA-Z0-9\-])+(\.\w+){1,2}/)[0]
-      info[:url] = scrape_listing_url(listing)
+      info[:path] = scrape_listing_path(listing)
+      # info[:base_url] = scrape_listing_path(listing).match(/http(s)*:\/\/(www\.)*([a-zA-Z0-9\-])+(\.\w+){1,2}/)[0]
+      # info[:base_url] = @base_url.match(/http(s)*:\/\/(www\.)*([a-zA-Z0-9\-])+(\.\w+){1,2}/)[0]
+      # info[:url] = scrape_listing_path(listing)
+      info[:host] = @base_url.match(/http(s)*:\/\/(www\.)*([a-zA-Z0-9\-])+(\.\w+){1,2}/)[0]
       info[:tags] = scrape_tags(listing)
 
       bid_info = scrape_bid_info(listing)     # scrape the bid info which returns a hash
 
       info.merge!(bid_info)           # merge our bid_info hash with the rest of the info
 
-      FreelancerFinder::Job.new(info) unless FreelancerFinder::Job.all.detect {|job| job.url == info[:url]}      # next create a job instance from the data we just scraped unless it exists already
-
+      info            # return the info hash
     end
-
   end
 
 
-  # this method scrapes the details from the individual listing pages after user chooses what listing they want to view
+  # this method takes in a FreelancerFinder::Job instance as a argument and scrapes the details from the individual listing pages after user chooses what listing they want to view
   def scrape_details(job_listing)
 
     listing_doc = open_from_url(job_listing.full_url)
@@ -108,7 +108,7 @@ class FreelancerFinder::Scraper
     info
   end
 
-  def scrape_listing_url(listing)
+  def scrape_listing_path(listing)
     listing.css(".JobSearchCard-primary-heading-link")[0]['href']
   end
 
@@ -117,7 +117,6 @@ class FreelancerFinder::Scraper
       job_listing.budget = listing_doc.css(".PageProjectViewLogout-header-byLine").text.match(/[\$€₹][\d]+ ?- ?[\$€₹]?\d+.*/)[0]
       job_listing.budget_range = job_listing.budget.scan(/\d+/)
     end
-
   end
 
   def scrape_description(listing_doc, job_listing)
