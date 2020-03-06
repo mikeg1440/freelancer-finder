@@ -48,4 +48,29 @@ RSpec.describe FreelancerFinder::Scraper do
     end
 
   end
+
+  describe '#scrape_details' do
+    context 'takes in a FreelancerFinder::Job instance as argument' do
+
+      job = FreelancerFinder::Job.new(jobs_hash.first)
+      job.base_url = 'spec/fixtures/freelancer.com'
+      job.path = job.path.gsub('/', '_')
+      scraper.scrape_details(job)
+
+      it 'scrapes budget details' do
+        expect(job.budget && job.budget_range)
+      end
+
+      it 'scrapes budget description' do
+        expect(job.description)
+      end
+
+      it 'scrapes budget bid_summary' do
+        expect(job.bid_summary)
+      end
+
+
+    end
+  end
+
 end
