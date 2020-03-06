@@ -122,17 +122,6 @@ class FreelancerFinder::Job
     @host+@path
   end
 
-# This method is not being used i guess
-  # class method to return a array of all the tags present from all
-  # def self.tags
-  #   tags = []
-  #   @@all.each do |job|
-  #     job.tags.each {|tag| tags << tag unless tags.include?(tag) }
-  #   end
-  #   binding.pry
-  #   tags
-  # end
-
   def self.all
     @@all
   end
